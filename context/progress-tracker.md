@@ -4,24 +4,27 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Design System Implementation (In Progress)
+- Editor Chrome Implementation
 
 ## Current Goal
 
-- Install and configure shadcn/ui with Button, Card, Dialog, Input, Tabs, Textarea, and ScrollArea components
+- Build the base chrome components (navbar + project sidebar) that frame every editor screen
 
 ## Completed
 
-- None yet.
+- Installed shadcn/ui with Button, Card, Dialog, Input, Tabs, Textarea, and ScrollArea components
+- Set up lib/utils.ts with cn() helper
+- Ensured dark theme compatibility
+- Implemented Editor Navbar component (components/editor/editor-navbar.tsx)
+- Implemented Project Sidebar component (components/editor/project-sidebar.tsx)
 
 ## In Progress
 
-- Installing shadcn/ui and required components
-- Setting up lib/utils.ts with cn() helper
-- Ensuring dark theme compatibility
+- None.
 
 ## Next Up
 
+- Wire the navbar and sidebar into an editor layout/page
 - Add the next planned feature unit here.
 
 ## Open Questions
@@ -30,10 +33,13 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Architecture Decisions
 
-- Add decisions that affect the system design or data model.
+- Editor chrome components are client components (they need interactivity for toggle/open state).
+- Sidebar floats over the canvas (fixed positioning) so it never pushes page content.
 
 ## Session Notes
 
 - Setting up design system as specified in context/feature-specs/01-design-system.md
 - Installing shadcn/ui components: Button, Card, Dialog, Input, Tabs, Textarea, ScrollArea
 - Also installing lucide-react for icons
+- Implemented editor chrome as specified in context/feature-specs/02-editor.md
+- Both components compile without TypeScript errors and lint passes

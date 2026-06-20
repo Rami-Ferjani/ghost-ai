@@ -1,51 +1,30 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { cn } from '@/lib/utils'
+"use client";
 
-export default function TestComponents() {
+import { EditorNavbar } from '@/components/editor/editor-navbar'
+import { ProjectSidebar } from '@/components/editor/project-sidebar'
+import { useState } from 'react'
+
+export default function TestEditorChrome() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   return (
-    <div className="p-4 space-y-4">
-      <h1 className="text-2xl font-bold">Design System Test</h1>
-
-      <Button>Click me</Button>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Card Title</CardTitle>
-          <CardDescription>Card Description</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p>Card Content</p>
-        </CardContent>
-        <CardFooter>
-          <p>Card Footer</p>
-        </CardFooter>
-      </Card>
-
-      <Input placeholder="Type something..." />
-
-      <Tabs defaultValue="account">
-        <TabsList>
-          <TabsTrigger value="account">Account</TabsTrigger>
-          <TabsTrigger value="password">Password</TabsTrigger>
-        </TabsList>
-        <TabsContent value="account">Account Content</TabsContent>
-        <TabsContent value="password">Password Content</TabsContent>
-      </Tabs>
-
-      <Textarea placeholder="Type your message here." />
-
-      <ScrollArea className="h-32 w-48 rounded-md border p-4">
-        <div className="space-y-2">
-          {[...Array(20)].map((_, i) => (
-            <div key={i}>Item {i + 1}</div>
-          ))}
-        </div>
-      </ScrollArea>
+    <div className="flex flex-col h-screen bg-background">
+      <EditorNavbar
+        isSidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+      />
+      <div className="flex-1 overflow-hidden">
+        <ProjectSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+        <main className="p-6">
+          <h1 className="text-2xl font-bold mb-4">Editor Chrome Demo</h1>
+          <p className="text-muted-foreground">
+            Toggle the sidebar using the button in the top-left corner.
+          </p>
+        </main>
+      </div>
     </div>
   )
 }
