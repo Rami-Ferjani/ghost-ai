@@ -17,6 +17,10 @@ Update this file whenever the current phase, active feature, or implementation s
 - Ensured dark theme compatibility
 - Implemented Editor Navbar component (components/editor/editor-navbar.tsx)
 - Implemented Project Sidebar component (components/editor/project-sidebar.tsx)
+- Configured ClerkProvider and added proxy.ts
+- Added Sign‑In and Sign‑Up pages
+- Added UserButton to editor navbar
+- Protected routes except sign‑in and sign‑up
 
 ## In Progress
 
@@ -25,7 +29,6 @@ Update this file whenever the current phase, active feature, or implementation s
 ## Next Up
 
 - Wire the navbar and sidebar into an editor layout/page
-- Add the next planned feature unit here.
 
 ## Open Questions
 
@@ -42,4 +45,3 @@ Update this file whenever the current phase, active feature, or implementation s
 - Installing shadcn/ui components: Button, Card, Dialog, Input, Tabs, Textarea, ScrollArea
 - Also installing lucide-react for icons
 - Implemented editor chrome as specified in context/feature-specs/02-editor.md
-- Both components compile without TypeScript errors and lint passes

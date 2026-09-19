@@ -1,11 +1,17 @@
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+
 export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-200">
-          ghost AI
-        </h1>
-      </div>
-    </div>
-  );
+  const router = useRouter();
+  const { isSignedIn, isLoaded } = useUser();
+
+  useEffect(() => {
+    if (isLoaded) {
+      router.replace(isSignedIn ? "/editor" : "/sign-in");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  return null;
 }

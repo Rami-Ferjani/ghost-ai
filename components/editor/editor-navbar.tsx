@@ -29,6 +29,10 @@ export interface EditorNavbarProps {
 /**
  * Fixed‑height, dark themed top navigation bar used across every editor page.
  */
+import { UserButton } from "@clerk/nextjs";
+
+// existing imports ...
+
 export const EditorNavbar: React.FC<EditorNavbarProps> = ({
   isSidebarOpen,
   onToggleSidebar,
@@ -61,8 +65,8 @@ export const EditorNavbar: React.FC<EditorNavbarProps> = ({
       {/* Center section – placeholder for future controls */}
       <div className="flex-1 flex justify-center" />
 
-      {/* Right section – currently empty */}
-      <div className="w-8" />
+      {/* Right – UserButton */}
+      <UserButton afterSignOutUrl="/sign-in" />
     </header>
   );
 };
