@@ -84,37 +84,56 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #080809;
+  --foreground: #f0f0f4;
+  --card: #111114;
+  --card-foreground: #f0f0f4;
+  --popover: #18181c;
+  --popover-foreground: #f0f0f4;
+  --primary: #f0f0f4;
+  --primary-foreground: #080809;
+  --secondary: #111114;
+  --secondary-foreground: #f0f0f4;
+  --muted: #1e1e23;
+  --muted-foreground: #c0c0cc;
+  --accent: #00c8d4;
+  --accent-foreground: #080809;
+  --destructive: #ff4d4f;
+  --border: #2a2a30;
+  --input: #2a2a30;
+  --ring: #f0f0f4;
+  --chart-1: #870 0 0;
+  --chart-2: #556 0 0;
+  --chart-3: #439 0 0;
+  --chart-4: #371 0 0;
+  --chart-5: #269 0 0;
+  --sidebar: #111114;
+  --sidebar-foreground: #f0f0f4;
+  --sidebar-primary: #00c8d4;
+  --sidebar-primary-foreground: #080809;
+  --sidebar-accent: rgba(0, 200, 212, 0.12);
+  --sidebar-accent-foreground: #080809;
+  --sidebar-border: #3a3a42;
+  --sidebar-ring: #f0f0f4;
+
+  /* CSS Custom Properties from ui-context.md */
+  --bg-base: #080809;
+  --bg-surface: #111114;
+  --bg-elevated: #18181c;
+  --bg-subtle: #1e1e23;
+  --border-default: #2a2a30;
+  --border-subtle: #3a3a42;
+  --text-primary: #f0f0f4;
+  --text-secondary: #c0c0cc;
+  --text-muted: #808090;
+  --text-faint: #505060;
+  --accent-primary: #00c8d4;
+  --accent-primary-dim: rgba(0, 200, 212, 0.12);
+  --accent-ai: #6457f9;
+  --accent-ai-text: #8b82ff;
+  --state-error: #ff4d4f;
+  --state-success: #34d399;
+  --state-warning: #fbbf24;
 }
 
 @layer base {

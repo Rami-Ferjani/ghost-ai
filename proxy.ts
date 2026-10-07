@@ -1,5 +1,9 @@
+import { clerkMiddleware } from "@clerk/nextjs/server";
+import { createRouteMatcher } from "@clerk/nextjs/server";
 
+// Public routes: sign-in and sign-up (from env vars or defaults)
 const isPublicRoute = createRouteMatcher([
+  "/",
   process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL ?? "/sign-in(.*)",
   process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL ?? "/sign-up(.*)",
 ]);

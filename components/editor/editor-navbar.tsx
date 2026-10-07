@@ -66,7 +66,7 @@ export const EditorNavbar: React.FC<EditorNavbarProps> = ({
       <div className="flex-1 flex justify-center" />
 
       {/* Right – UserButton */}
-      <UserButton afterSignOutUrl="/sign-in" />
+      <UserButton />
     </header>
   );
 };
