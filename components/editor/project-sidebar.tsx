@@ -4,34 +4,117 @@
  * - Slides in from the left, floating over the editor canvas (does not push content)
  * - Accepts `isOpen` prop to control visibility
  * - Header with `Projects` title and close button
- * - Uses shadcn `Tabs` with `My Projects` and `Shared` tabs (both empty placeholders)
- * - Full‑width `New Project` button at the bottom with a `Plus` icon
+ * - `My Projects` tab lists projects owned by the current user; `Shared` tab lists the rest
+ * - Owned rows show rename/delete action buttons; shared rows show none
+ * - Selected row is highlighted via the accent color
+ * - Footer `New Project` button opens the Create dialog
  */
 
 "use client";
 
 import { useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import type { Project } from "@/types/project";
+
+const isOwnedProject = (project: Project, currentUserId: string | undefined) =>
+  project.ownerId === currentUserId;
+
+export interface ProjectRowProps {
+  project: Project;
+  currentUserId: string | undefined;
+  selectedProjectId: string | null;
+  onSelect: (project: Project) => void;
+  onRename: (project: Project) => void;
+  onDelete: (project: Project) => void;
+}
+
+const ProjectRow: React.FC<ProjectRowProps> = ({ project, currentUserId, selectedProjectId, onSelect, onRename, onDelete }) => {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
+        "hover:bg-surface-hover",
+        project.id === selectedProjectId ? "bg-accent-dim" : ""
+      )}
+      onClick={() => onSelect(project)}
+    >
+      <span className="font-medium">{project.name}</span>
+
+      {isOwnedProject(project, currentUserId) && (
+        <span className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onRename(project);
+            }}
+            className="rounded p-1 hover:bg-surface-hover"
+            aria-label={`Rename ${project.name}`}
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete(project);
+            }}
+            className="rounded p-1 hover:bg-surface-hover"
+            aria-label={`Delete ${project.name}`}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </span>
+      )}
+    </button>
+  );
+};
 
 export interface ProjectSidebarProps {
   /** Whether the sidebar is visible */
   isOpen: boolean;
   /** Callback to close the sidebar */
   onClose: () => void;
+  /** Projects available for the sidebar */
+  projects: Project[];
+  /** Current user id for ownership filtering (undefined if not loaded yet) */
+  currentUserId: string | undefined;
+  /** Currently selected project id (null when none) */
+  selectedProjectId: string | null;
+  /** Select a project from the sidebar */
+  onSelectProject: (project: Project) => void;
+  /** Open the create-project dialog */
+  onOpenCreate: () => void;
+  /** Open the rename-project dialog for the given project */
+  onOpenRename: (project: Project) => void;
+  /** Open the delete-project dialog for the given project */
+  onOpenDelete: (project: Project) => void;
 }
 
 /**
  * Floating sidebar that appears over the editor canvas. It slides in from the left.
  */
-export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose }) => {
+export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
+  isOpen,
+  onClose,
+  projects,
+  currentUserId,
+  selectedProjectId,
+  onSelectProject,
+  onOpenCreate,
+  onOpenRename,
+  onOpenDelete,
+}) => {
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
 
   return (
+    <>
     <aside
       className={cn(
         "fixed inset-y-0 left-0 z-30 w-80 transform transition-transform duration-300 ease-in-out",
@@ -39,6 +122,7 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose 
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}
       aria-hidden={!isOpen}
+      onClick={(event) => event.stopPropagation()}
     >
       {/* Header */}
       <header className="flex items-center justify-between border-b border-surface-border p-4">
@@ -61,22 +145,53 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose 
         </TabsList>
         <div className="flex-1 overflow-y-auto p-4">
           <TabsContent value="my">
-            {/* Empty placeholder for My Projects */}
-            <p className="text-muted-foreground">No projects yet.</p>
+            {projects
+              .filter((project) => isOwnedProject(project, currentUserId))
+              .map((project) => (
+                <ProjectRow
+                  key={project.id}
+                  project={project}
+                  currentUserId={currentUserId}
+                  selectedProjectId={selectedProjectId}
+                  onSelect={onSelectProject}
+                  onRename={onOpenRename}
+                  onDelete={onOpenDelete}
+                />
+              ))}
+            {projects.filter((project) => isOwnedProject(project, currentUserId)).length === 0 && (
+              <p className="text-muted-foreground">No projects yet.</p>
+            )}
           </TabsContent>
           <TabsContent value="shared">
-            {/* Empty placeholder for Shared */}
-            <p className="text-muted-foreground">No shared projects.</p>
+            {projects
+              .filter((project) => !isOwnedProject(project, currentUserId))
+              .map((project) => (
+                <ProjectRow
+                  key={project.id}
+                  project={project}
+                  currentUserId={currentUserId}
+                  selectedProjectId={selectedProjectId}
+                  onSelect={onSelectProject}
+                  onRename={onOpenRename}
+                  onDelete={onOpenDelete}
+                />
+              ))}
+            {projects.filter((project) => !isOwnedProject(project, currentUserId)).length === 0 && (
+              <p className="text-muted-foreground">No shared projects.</p>
+            )}
           </TabsContent>
         </div>
       </Tabs>
 
       {/* New Project button – sticks to bottom */}
       <footer className="p-4 border-t border-surface-border">
-        <Button variant="default" className="w-full" onClick={() => { /* TODO: open new project modal */ }}>
+        <Button variant="default" className="w-full" onClick={onOpenCreate}>
           <Plus className="mr-2 h-4 w-4" /> New Project
         </Button>
       </footer>
     </aside>
+
+      {isOpen && <div className="fixed inset-0 z-20 bg-black/40 backdrop-blur-xs" aria-hidden="true" onClick={onClose} />}
+    </>
   );
 };
