@@ -52,6 +52,7 @@ export const RenameProjectDialog: React.FC<RenameProjectDialogProps> = ({
 
           <div className="flex flex-col gap-2">
             <Input
+              aria-label="New project name"
               ref={inputRef}
               value={renameName}
               onChange={(event) => setRenameName(event.target.value)}
