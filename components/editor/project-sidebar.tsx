@@ -33,16 +33,20 @@ export interface ProjectRowProps {
 
 const ProjectRow: React.FC<ProjectRowProps> = ({ project, currentUserId, selectedProjectId, onSelect, onRename, onDelete }) => {
   return (
-    <button
-      type="button"
+    <div
       className={cn(
         "w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
         "hover:bg-surface-hover",
         project.id === selectedProjectId ? "bg-accent-dim" : ""
       )}
-      onClick={() => onSelect(project)}
     >
-      <span className="font-medium">{project.name}</span>
+      <button
+        type="button"
+        onClick={() => onSelect(project)}
+        className="flex-1 min-w-0"
+      >
+        <span className="font-medium">{project.name}</span>
+      </button>
 
       {isOwnedProject(project, currentUserId) && (
         <span className="flex items-center gap-1">
@@ -70,7 +74,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({ project, currentUserId, selecte
           </button>
         </span>
       )}
-    </button>
+    </div>
   );
 };
 
