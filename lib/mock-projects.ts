@@ -1,4 +1,4 @@
-import { Project } from '@/types/project';
+import type { Project } from '@/types/project';
 
 export const MOCK_PROJECTS: Project[] = [
   { id: 'p1', name: 'Phoenix Architecture', slug: 'phoenix-architecture', ownerId: 'user_1' },
