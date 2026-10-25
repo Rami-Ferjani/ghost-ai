@@ -49,6 +49,7 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
 
           <div className="flex flex-col gap-2">
             <Input
+              aria-label="Project name"
               value={createName}
               onChange={(event) => setCreateName(event.target.value)}
               placeholder="Project name"

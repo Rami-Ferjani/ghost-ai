@@ -6,6 +6,9 @@ import { MOCK_PROJECTS } from "@/lib/mock-projects"
 import { EditorNavbar } from "@/components/editor/editor-navbar"
 import { ProjectSidebar } from "@/components/editor/project-sidebar"
 import { useState } from "react"
+import { CreateProjectDialog } from "@/components/editor/create-project-dialog"
+import { RenameProjectDialog } from "@/components/editor/rename-project-dialog"
+import { DeleteProjectDialog } from "@/components/editor/delete-project-dialog"
 
 export default function TestEditorChrome() {
   const { user } = useUser();
@@ -39,6 +42,26 @@ export default function TestEditorChrome() {
           </p>
         </main>
       </div>
+
+      {/* Dialogs render once at the page level, driven by the activeDialog state */}
+      <CreateProjectDialog
+        open={dialogs.activeDialog === "create"}
+        createName={dialogs.createName}
+        setCreateName={dialogs.setCreateName}
+        onClose={dialogs.closeDialog}
+      />
+      <RenameProjectDialog
+        open={dialogs.activeDialog === "rename"}
+        project={dialogs.selectedProject}
+        renameName={dialogs.renameName}
+        setRenameName={dialogs.setRenameName}
+        onClose={dialogs.closeDialog}
+      />
+      <DeleteProjectDialog
+        open={dialogs.activeDialog === "delete"}
+        project={dialogs.selectedProject}
+        onClose={dialogs.closeDialog}
+      />
     </div>
   )
 }
