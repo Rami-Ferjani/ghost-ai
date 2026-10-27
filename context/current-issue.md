@@ -14,3 +14,9 @@ To resolve this, ensure that the middleware does not protect the catch-all route
 
  GET /sign-in/sso-callback 404 in 73ms (next.js: 12ms, proxy.ts: 21ms, application-code: 41ms)
 
+
+explore the [current-issues bellow](http://current-issues.md) and deeply analyze the problem.only when you have the analysis . give it back to me with the idea of how you're planning to solve it, and then wait for me to give you the green light to execute it .
+
+  
+current issue:  
+the side bar is a see through, meaning i can see the content of the page behind it 
