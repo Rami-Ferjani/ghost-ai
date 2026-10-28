@@ -11,6 +11,10 @@ export interface DeleteProjectDialogProps {
   project: Project | null;
   /** Close the dialog (cancel/submit) */
   onClose: () => void;
+  /** Confirm the delete action (called on Confirm button click) */
+  onConfirm: () => Promise<void>;
+  /** Whether the delete action is currently submitting */
+  isSubmitting?: boolean;
 }
 
 /**
@@ -21,6 +25,8 @@ export const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
   open,
   project,
   onClose,
+  onConfirm,
+  isSubmitting = false,
 }) => {
   if (!project) return null;
 
@@ -36,7 +42,7 @@ export const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
           <DialogClose render={<Button variant="outline" />}>
             Cancel
           </DialogClose>
-          <Button variant="destructive" onClick={onClose}>
+          <Button variant="destructive" onClick={onConfirm}>
             Confirm
           </Button>
         </DialogFooter>

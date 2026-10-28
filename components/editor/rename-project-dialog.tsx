@@ -16,6 +16,10 @@ export interface RenameProjectDialogProps {
   setRenameName: (name: string) => void;
   /** Close the dialog (cancel/submit) */
   onClose: () => void;
+  /** Submit the rename action (called on form submit / Confirm) */
+  onSubmit: () => Promise<void>;
+  /** Whether the rename action is currently submitting */
+  isSubmitting?: boolean;
 }
 
 /**
@@ -29,6 +33,8 @@ export const RenameProjectDialog: React.FC<RenameProjectDialogProps> = ({
   renameName,
   setRenameName,
   onClose,
+  onSubmit,
+  isSubmitting = false,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -36,11 +42,11 @@ export const RenameProjectDialog: React.FC<RenameProjectDialogProps> = ({
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onClose();
+    onSubmit();
   };
 
   const handleConfirm = () => {
-    onClose();
+    onSubmit();
   };
 
   return (
@@ -65,7 +71,7 @@ export const RenameProjectDialog: React.FC<RenameProjectDialogProps> = ({
             <DialogClose render={<Button variant="outline" />}>
               Cancel
             </DialogClose>
-            <Button variant="default" onClick={handleConfirm}>
+            <Button variant="default" disabled={isSubmitting} onClick={handleConfirm}>
               Confirm
             </Button>
           </DialogFooter>
