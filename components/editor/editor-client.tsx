@@ -64,6 +64,8 @@ export const EditorClient: React.FC<EditorClientProps> = ({
         setCreateName={action.setCreateName}
         onClose={action.closeDialog}
         onSubmit={action.handleCreate}
+        error={action.error}
+        isSubmitting={action.isSubmitting}
       />
       <RenameProjectDialog
         open={action.activeDialog === "rename"}
@@ -72,12 +74,15 @@ export const EditorClient: React.FC<EditorClientProps> = ({
         setRenameName={action.setRenameName}
         onClose={action.closeDialog}
         onSubmit={action.handleRename}
+        error={action.error}
+        isSubmitting={action.isSubmitting}
       />
       <DeleteProjectDialog
         open={action.activeDialog === "delete"}
         project={action.selectedProject}
         onClose={action.closeDialog}
         onConfirm={action.handleDelete}
+        isSubmitting={action.isSubmitting}
       />
     </div>
   );

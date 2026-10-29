@@ -18,6 +18,8 @@ export interface CreateProjectDialogProps {
   onSubmit: () => Promise<void>;
   /** Whether the create action is currently submitting */
   isSubmitting?: boolean;
+  /** Error message from failed submission */
+  error?: string | null;
 }
 
 /**
@@ -32,6 +34,7 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   onClose,
   onSubmit,
   isSubmitting = false,
+  error,
 }) => {
   const slug = useMemo(() => slugFromName(createName), [createName]);
 
@@ -64,16 +67,18 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
             <p className="text-copy-muted text-sm">
               Slug preview: {slug}
             </p>
-            <p className="text-copy-muted text-sm">
-              Room ID preview: room-{slug}
-            </p>
+            {error && (
+              <p className="text-destructive text-sm">
+                {error}
+              </p>
+            )}
           </div>
 
           <DialogFooter>
             <DialogClose render={<Button variant="outline" />}>
               Cancel
             </DialogClose>
-            <Button variant="default" disabled={!slug || isSubmitting} onClick={handleConfirm}>
+            <Button variant="default" disabled={!slug || isSubmitting || createName.trim().length === 0} onClick={handleConfirm}>
               Confirm
             </Button>
           </DialogFooter>

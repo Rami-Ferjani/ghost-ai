@@ -20,6 +20,8 @@ export interface RenameProjectDialogProps {
   onSubmit: () => Promise<void>;
   /** Whether the rename action is currently submitting */
   isSubmitting?: boolean;
+  /** Error message from failed submission */
+  error?: string | null;
 }
 
 /**
@@ -35,6 +37,7 @@ export const RenameProjectDialog: React.FC<RenameProjectDialogProps> = ({
   onClose,
   onSubmit,
   isSubmitting = false,
+  error,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -65,6 +68,11 @@ export const RenameProjectDialog: React.FC<RenameProjectDialogProps> = ({
               placeholder={project.name}
               autoFocus
             />
+            {error && (
+              <p className="text-destructive text-sm">
+                {error}
+              </p>
+            )}
           </div>
 
           <DialogFooter>
