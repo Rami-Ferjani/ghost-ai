@@ -10,13 +10,14 @@ export async function getProjectsForUser(userId: string) {
       where: { ownerId: userId },
       orderBy: { createdAt: "desc" },
     }),
-    // The collaborator model stores per-user rows on each project; when no
-    // collaborators exist yet the table is empty and returns [].
-    prisma.projectCollaborator.findMany(),
+    // Query collaborator relation directly, matching collaboratorEmail to current user
+    prisma.projectCollaborator.findMany({
+      where: { collaboratorEmail: userId },
+      include: { project: true },
+    }),
   ]);
 
   const ownedIds = new Set(ownedProjects.map((project) => project.id));
-  const collaboratorIds = new Set(collaboratorRows.map((row) => row.projectId));
 
   const transformProject = (project: {
     id: string;
@@ -29,10 +30,10 @@ export async function getProjectsForUser(userId: string) {
     ownerId: project.ownerId,
   });
 
-  const sharedProjects: Project[] = ownedProjects
-    // Shared projects are those the user is a collaborator on but does not own.
-    .filter((project) => !ownedIds.has(project.id) && collaboratorIds.has(project.id))
-    .map(transformProject);
+  // Shared projects are those the user is a collaborator on but does not own.
+  const sharedProjects: Project[] = collaboratorRows
+    .filter((row) => row.project.ownerId !== userId)
+    .map((row) => transformProject(row.project));
 
   return {
     ownedProjects: ownedProjects.map(transformProject),
