@@ -27,10 +27,11 @@ export async function POST(req: Request) {
     return Response.json({ error: "Project name must be a string" }, { status: 400 });
   }
 
+  const projectName = bodyName !== undefined ? bodyName.trim() : "";
   const project = await prisma.project.create({
     data: {
       ownerId: userId,
-      name: bodyName ?? "Untitled Project",
+      name: projectName || "Untitled Project",
       canvasJsonPath: "",
     },
   });

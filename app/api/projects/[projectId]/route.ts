@@ -35,6 +35,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ projec
     return Response.json({ error: "Project name must be a string" }, { status: 400 });
   }
 
+  // Reject empty names before updating; keep existing name if no bodyName
+  if (bodyName !== undefined && bodyName.trim() === "") {
+    return Response.json({ error: "Project name cannot be empty" }, { status: 400 });
+  }
+
   const updatedProject = await prisma.project.update({
     where: { id: projectId },
     data: { name: bodyName ?? project.name },
