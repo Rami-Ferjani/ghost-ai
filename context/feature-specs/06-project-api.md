@@ -19,7 +19,7 @@ Use the authenticated Clerk user ID as `ownerId`.
 
 When creating:
 
--default missing project name to `Untitles Project`
+-default missing project name to `Untitled Project`
 
 -use the schema`s existing ID [stretegy.do](http://stretegy.do) not add sequential IDs
 

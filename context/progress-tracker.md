@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Prisma Database Setup
+- Project API Integration
 
 ## Current Goal
 
-- Implement Prisma ORM models, client singleton, and migration for project management
+- Implement and wire up project API routes, editor client, and project action hook for full project CRUD workflow
 
 ## Completed
 
@@ -32,11 +32,14 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## In Progress
 
-- None — spec 05-prisma is complete.
+- Project API routes validation and error handling
+- Editor client wiring with dialog error propagation
+- Shared projects fetching via collaborator relation
 
 ## Next Up
 
-- Wire the navbar and sidebar into an editor layout/page
+- Testing the full project CRUD workflow
+- Headless behavioral verification of dialog error states
 
 ## Open Questions
 
