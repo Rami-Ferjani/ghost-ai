@@ -45,10 +45,18 @@ export const RenameProjectDialog: React.FC<RenameProjectDialogProps> = ({
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!renameName.trim()) {
+      setError("Project name cannot be empty");
+      return;
+    }
     onSubmit();
   };
 
   const handleConfirm = () => {
+    if (!renameName.trim()) {
+      setError("Project name cannot be empty");
+      return;
+    }
     onSubmit();
   };
 
@@ -79,7 +87,7 @@ export const RenameProjectDialog: React.FC<RenameProjectDialogProps> = ({
             <DialogClose render={<Button variant="outline" />}>
               Cancel
             </DialogClose>
-            <Button variant="default" disabled={isSubmitting} onClick={handleConfirm}>
+            <Button variant="default" disabled={isSubmitting || !renameName.trim()} onClick={handleConfirm}>
               Confirm
             </Button>
           </DialogFooter>

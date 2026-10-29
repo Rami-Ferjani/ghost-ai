@@ -40,6 +40,7 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!slug || isSubmitting || createName.trim().length === 0) return;
     onSubmit();
   };
 
