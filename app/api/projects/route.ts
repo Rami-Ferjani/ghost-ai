@@ -9,17 +9,28 @@ export async function POST(req: Request) {
 
   const prisma = getPrismaClient();
 
-  let body: { name?: string };
+  let body: unknown;
   try {
-    body = (await req.json()) as { name?: string };
+    body = (await req.json()) as unknown;
   } catch {
     return Response.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  // Validate body is a non-null object
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    return Response.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  // Validate name if present - must be a string
+  const bodyName = (body as { name?: string }).name;
+  if (bodyName !== undefined && typeof bodyName !== "string") {
+    return Response.json({ error: "Project name must be a string" }, { status: 400 });
   }
 
   const project = await prisma.project.create({
     data: {
       ownerId: userId,
-      name: body.name || "Untitled Project",
+      name: bodyName ?? "Untitled Project",
       canvasJsonPath: "",
     },
   });

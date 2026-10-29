@@ -17,16 +17,27 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ projec
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  let body: { name?: string };
+  let body: unknown;
   try {
-    body = (await req.json()) as { name?: string };
+    body = (await req.json()) as unknown;
   } catch {
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
 
+  // Validate body is a non-null object
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    return Response.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  // Validate name if present - must be a string
+  const bodyName = (body as { name?: string }).name;
+  if (bodyName !== undefined && typeof bodyName !== "string") {
+    return Response.json({ error: "Project name must be a string" }, { status: 400 });
+  }
+
   const updatedProject = await prisma.project.update({
     where: { id: projectId },
-    data: { name: body.name || project.name },
+    data: { name: bodyName ?? project.name },
   });
 
   return Response.json(updatedProject);
