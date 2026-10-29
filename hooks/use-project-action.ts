@@ -55,47 +55,66 @@ export function useProjectAction({
 
   const handleCreate = async () => {
     setIsSubmitting(true);
-    const res = await fetch("/api/projects", {
-      method: "POST",
-      body: JSON.stringify({ name: createName }),
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        body: JSON.stringify({ name: createName }),
+      });
+      if (!res.ok) {
+        setError("Failed to create project");
+        return;
+      }
+      const newProject = await res.json();
+      closeDialog();
+      router.push(`/editor/${newProject.id}`);
+      router.refresh();
+    } catch {
       setError("Failed to create project");
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-    const newProject = await res.json();
-    closeDialog();
-    router.refresh();
   };
 
   const handleRename = async () => {
     if (!selectedProject) return;
-    const res = await fetch(`/api/projects/${selectedProject.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ name: renameName }),
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch(`/api/projects/${selectedProject.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name: renameName }),
+      });
+      if (!res.ok) {
+        setError("Failed to rename project");
+        return;
+      }
+      closeDialog();
+      router.refresh();
+    } catch {
       setError("Failed to rename project");
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-    closeDialog();
-    router.refresh();
   };
 
   const handleDelete = async () => {
     if (!selectedProject) return;
-    const res = await fetch(`/api/projects/${selectedProject.id}`, {
-      method: "DELETE",
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch(`/api/projects/${selectedProject.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        setError("Failed to delete project");
+        return;
+      }
+      closeDialog();
+      if (selectedProject.id === activeProjectId) {
+        router.push("/editor");
+      }
+      router.refresh();
+    } catch {
       setError("Failed to delete project");
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-    closeDialog();
-    if (selectedProject.id === activeProjectId) {
-      router.push("/editor");
-    }
-    router.refresh();
   };
 
   return {
