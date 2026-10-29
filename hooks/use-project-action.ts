@@ -66,7 +66,7 @@ export function useProjectAction({
       }
       const newProject = await res.json();
       closeDialog();
-      router.push(`/editor/${newProject.id}`);
+      router.push("/editor");
       router.refresh();
     } catch {
       setError("Failed to create project");
