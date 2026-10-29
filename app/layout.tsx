@@ -27,7 +27,21 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <ClerkProvider afterSignOutUrl="/sign-in" ui={ui}>
+    <ClerkProvider
+      afterSignOutUrl="/sign-in"
+      ui={ui}
+      appearance={{
+        theme: undefined,
+        variables: {
+          colorPrimary: "#6366f1",
+          colorForeground: "#e2e8f0",
+          colorBackground: "#0f172a",
+          colorDanger: "#ef4444",
+          colorSuccess: "#22c55e",
+          borderRadius: "0.5rem",
+        },
+      }}
+    >
       <html
         lang="en"
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} h-full antialiased dark`}
