@@ -14,6 +14,12 @@ export interface CreateProjectDialogProps {
   setCreateName: (name: string) => void;
   /** Close the dialog (cancel/close/submit) */
   onClose: () => void;
+  /** Submit the create action (called on form submit / Confirm) */
+  onSubmit: () => Promise<void>;
+  /** Whether the create action is currently submitting */
+  isSubmitting?: boolean;
+  /** Error message from failed submission */
+  error?: string | null;
 }
 
 /**
@@ -26,16 +32,20 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   createName,
   setCreateName,
   onClose,
+  onSubmit,
+  isSubmitting = false,
+  error,
 }) => {
   const slug = useMemo(() => slugFromName(createName), [createName]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (slug) onClose();
+    if (!slug || isSubmitting || createName.trim().length === 0) return;
+    onSubmit();
   };
 
   const handleConfirm = () => {
-    if (slug) onClose();
+    onSubmit();
   };
 
   return (
@@ -58,13 +68,18 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
             <p className="text-copy-muted text-sm">
               Slug preview: {slug}
             </p>
+            {error && (
+              <p className="text-destructive text-sm">
+                {error}
+              </p>
+            )}
           </div>
 
           <DialogFooter>
             <DialogClose render={<Button variant="outline" />}>
               Cancel
             </DialogClose>
-            <Button variant="default" disabled={!slug} onClick={handleConfirm}>
+            <Button variant="default" disabled={!slug || isSubmitting || createName.trim().length === 0} onClick={handleConfirm}>
               Confirm
             </Button>
           </DialogFooter>
