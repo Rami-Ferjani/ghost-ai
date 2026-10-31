@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import type { Project } from "@/types/project";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ export const RenameProjectDialog: React.FC<RenameProjectDialogProps> = ({
   isSubmitting = false,
   error,
 }) => {
+  const [localError, setLocalError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   if (!project) return null;
@@ -46,17 +47,19 @@ export const RenameProjectDialog: React.FC<RenameProjectDialogProps> = ({
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!renameName.trim()) {
-      setError("Project name cannot be empty");
+      setLocalError("Project name cannot be empty");
       return;
     }
+    setLocalError(null);
     onSubmit();
   };
 
   const handleConfirm = () => {
     if (!renameName.trim()) {
-      setError("Project name cannot be empty");
+      setLocalError("Project name cannot be empty");
       return;
     }
+    setLocalError(null);
     onSubmit();
   };
 
@@ -76,9 +79,9 @@ export const RenameProjectDialog: React.FC<RenameProjectDialogProps> = ({
               placeholder={project.name}
               autoFocus
             />
-            {error && (
+            {(localError || error) && (
               <p className="text-destructive text-sm">
-                {error}
+                {localError || error}
               </p>
             )}
           </div>
