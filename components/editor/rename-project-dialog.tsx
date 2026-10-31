@@ -79,9 +79,9 @@ export const RenameProjectDialog: React.FC<RenameProjectDialogProps> = ({
               placeholder={project.name}
               autoFocus
             />
-            {error && (
+            {(localError || error) && (
               <p className="text-destructive text-sm">
-                {error}
+                {localError || error}
               </p>
             )}
           </div>

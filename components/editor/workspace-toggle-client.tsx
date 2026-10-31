@@ -49,12 +49,12 @@ export const WorkspaceToggleClient: React.FC<WorkspaceToggleClientProps> = ({
           onOpenRename={() => {}}
           onOpenDelete={() => {}}
         />
-        {/* Right AI sidebar */}
-        <AISidebarPlaceholder />
         {/* Central canvas placeholder */}
         <main className="flex-1 overflow-hidden">
           <CanvasPlaceholder />
         </main>
+        {/* Right AI sidebar */}
+        <AISidebarPlaceholder />
       </div>
     </div>
   );
