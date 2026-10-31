@@ -77,3 +77,4 @@ Update this file whenever the current phase, active feature, or implementation s
 - Installing shadcn/ui components: Button, Card, Dialog, Input, Tabs, Textarea, ScrollArea
 - Also installing lucide-react for icons
 - Implemented editor chrome as specified in context/feature-specs/02-editor.md
+- Fixed editor workspace page client-component prop invariant ("Event handlers cannot be passed to Client Component props"): moved sidebar-toggle state + EditorNavbar rendering into `WorkspaceToggleClient` (which now owns `sidebarOpen` and renders `EditorNavbar` with `onToggleSidebar`), and simplified `WorkspaceLayout` to a Server Component rendering only `WorkspaceToggleClient`. Removes the no-op `onToggleSidebar={() => {}}` function prop passed from the server component to the client `EditorNavbar`. Verified: lint (no issues in changed files), `npm run build` passes.
