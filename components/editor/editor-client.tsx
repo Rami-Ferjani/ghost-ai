@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { Project } from "@/types/project";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
@@ -29,16 +30,28 @@ export const EditorClient: React.FC<EditorClientProps> = ({
   sharedProjects,
   currentUserId,
 }) => {
+  const router = useRouter();
   const allProjects = [...ownedProjects, ...sharedProjects];
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const action = useProjectAction({ currentUserId, activeProjectId: selectedProjectId });
+
+  // Navigate to workspace when a project is selected
+  useEffect(() => {
+    if (selectedProjectId) {
+      router.push(`/editor/${selectedProjectId}`);
+      router.refresh();
+    }
+  }, [selectedProjectId, router]);
 
   return (
     <div className="flex flex-col h-screen bg-background">
       <EditorNavbar
         isSidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        projectId={selectedProjectId ?? ""}
+        projectName={selectedProjectId ? "Selected Project" : "Editor Home"}
+        userId={currentUserId ?? ""}
       />
       <div className="flex-1 overflow-hidden">
         <ProjectSidebar
