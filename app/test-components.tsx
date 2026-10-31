@@ -22,6 +22,9 @@ export default function TestEditorChrome() {
       <EditorNavbar
         isSidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        projectId={selectedProjectId ?? "test-project"}
+        projectName={selectedProjectId ? "Test Project" : "Demo"}
+        userId={currentUserId ?? "test-user"}
       />
       <div className="flex-1 overflow-hidden">
         <ProjectSidebar
