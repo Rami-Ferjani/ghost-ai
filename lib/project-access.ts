@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getPrismaClient } from "@/lib/prisma";
 import { slugFromName } from "@/lib/slug";
 import type { Project } from "@/types/project";
@@ -8,9 +8,10 @@ import type { Project } from "@/types/project";
  * Returns both user ID and primary email.
  */
 export async function getCurrentClerkIdentity() {
-  const userId = (await auth()).userId;
-  const email = "";
-
+  const { userId } = await auth();
+  const client = await clerkClient();
+  const user = userId ? await client.users.getUser(userId) : null;
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
   return { userId, email };
 }
 
