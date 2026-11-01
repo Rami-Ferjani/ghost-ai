@@ -9,6 +9,8 @@ import { useState } from "react"
 import { CreateProjectDialog } from "@/components/editor/create-project-dialog"
 import { RenameProjectDialog } from "@/components/editor/rename-project-dialog"
 import { DeleteProjectDialog } from "@/components/editor/delete-project-dialog"
+import { ShareDialog } from "@/components/editor/share-dialog"
+import type { CollaboratorEnrichment } from "@/lib/share-dialog-helpers"
 
 export default function TestEditorChrome() {
   const { user } = useUser();
@@ -16,6 +18,17 @@ export default function TestEditorChrome() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const action = useProjectAction({ currentUserId, activeProjectId: selectedProjectId });
+
+  // Share-dialog test vehicle: mock enriched collaborators for the owner view,
+  // plus local state to drive the owner/collaborator share views and copy feedback.
+  const MOCK_COLLABORATORS: CollaboratorEnrichment[] = [
+    { name: "Alice", avatarUrl: null, email: "alice@example.com" },
+    { name: "Bob", avatarUrl: null, email: "bob@example.com" },
+  ];
+  const [ownerShareInviteEmail, setOwnerShareInviteEmail] = useState("");
+  const [ownerShareCopied, setOwnerShareCopied] = useState(false);
+  const [collabShareInviteEmail, setCollabShareInviteEmail] = useState("");
+  const [collabShareCopied, setCollabShareCopied] = useState(false);
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -67,6 +80,39 @@ export default function TestEditorChrome() {
         project={action.selectedProject}
         onClose={action.closeDialog}
         onConfirm={action.handleDelete}
+      />
+
+      {/* ShareDialog test views: owner (invite form + remove + copy-link) and
+          collaborator (read-only list + copy-link) for the same project. */}
+      <ShareDialog
+        open={true}
+        onClose={() => {}}
+        project={MOCK_PROJECTS[0]}
+        role="owner"
+        currentEmail="user_1"
+        collaborators={MOCK_COLLABORATORS}
+        inviteEmail={ownerShareInviteEmail}
+        setInviteEmail={setOwnerShareInviteEmail}
+        onInvite={async () => {}}
+        onRemove={async () => {}}
+        copyUrl="https://ghost-ai.app/phoenix-architecture"
+        isCopied={ownerShareCopied}
+        onCopyLink={async () => { setOwnerShareCopied(true); }}
+      />
+      <ShareDialog
+        open={true}
+        onClose={() => {}}
+        project={MOCK_PROJECTS[0]}
+        role="collaborator"
+        currentEmail="alice@example.com"
+        collaborators={MOCK_COLLABORATORS}
+        inviteEmail={collabShareInviteEmail}
+        setInviteEmail={setCollabShareInviteEmail}
+        onInvite={async () => {}}
+        onRemove={async () => {}}
+        copyUrl="https://ghost-ai.app/phoenix-architecture"
+        isCopied={collabShareCopied}
+        onCopyLink={async () => { setCollabShareCopied(true); }}
       />
     </div>
   )
