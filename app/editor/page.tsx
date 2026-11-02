@@ -1,11 +1,11 @@
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getProjectsForUser } from "@/lib/projects";
+import { getCurrentClerkIdentity } from "@/lib/project-access";
 import { EditorClient } from "@/components/editor/editor-client";
 
 export default async function EditorPage() {
-  const { isAuthenticated, userId } = await auth();
-  if (!isAuthenticated) {
+  const { userId, email } = await getCurrentClerkIdentity();
+  if (!userId) {
     redirect("/sign-in");
   }
 
@@ -16,6 +16,7 @@ export default async function EditorPage() {
       ownedProjects={ownedProjects}
       sharedProjects={sharedProjects}
       currentUserId={userId}
+      currentEmail={email}
     />
   );
 }

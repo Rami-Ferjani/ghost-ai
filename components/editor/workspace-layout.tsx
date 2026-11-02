@@ -1,3 +1,4 @@
+import type { CollaboratorEnrichment } from "@/lib/share-dialog-helpers";
 import { WorkspaceToggleClient } from "@/components/editor/workspace-toggle-client";
 
 export interface WorkspaceLayoutProps {
@@ -8,11 +9,17 @@ export interface WorkspaceLayoutProps {
     ownerId: string;
   };
   userId: string;
+  role: "owner" | "collaborator" | null;
+  currentEmail: string;
+  collaborators: CollaboratorEnrichment[];
 }
 
 export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
   project,
   userId,
+  role,
+  currentEmail,
+  collaborators,
 }) => {
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -20,6 +27,9 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
         <WorkspaceToggleClient
           project={project}
           userId={userId}
+          role={role}
+          currentEmail={currentEmail}
+          collaborators={collaborators}
         />
       </div>
     </div>

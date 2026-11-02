@@ -5,6 +5,41 @@ import { cn } from "@/lib/utils";
 import { PanelLeftOpen, PanelLeftClose, Share2, PanelRightOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
+import type { Project } from "@/types/project";
+import type { CollaboratorEnrichment } from "@/lib/share-dialog-helpers";
+import { ShareDialog } from "@/components/editor/share-dialog";
+
+export interface EditorNavbarShareProps {
+  /** Whether the share dialog is open */
+  open: boolean;
+  /** Close the share dialog */
+  onClose: () => void;
+  /** Open the share dialog */
+  onOpenShare: () => void;
+  /** The project being shared */
+  project: Project | null;
+  /** Current user's role for this project, derived from ownership/collaborator data */
+  role: "owner" | "collaborator" | null;
+  /** Current user's email */
+  currentEmail: string;
+  /** Enriched collaborator list for the project (already enriched, email keyed) */
+  collaborators: CollaboratorEnrichment[];
+  /** Invite form email value (owner only) */
+  inviteEmail: string;
+  setInviteEmail: (email: string) => void;
+  /** Invite submit state (owner only) */
+  isInviting?: boolean;
+  /** Invite handler (owner only) */
+  onInvite: () => Promise<void>;
+  /** Remove a collaborator by email (owner only) */
+  onRemove: (email: string) => Promise<void>;
+  /** Project link to copy */
+  copyUrl: string;
+  /** Whether copy-link is currently copied */
+  isCopied?: boolean;
+  /** Copy-link handler */
+  onCopyLink: () => Promise<void>;
+}
 
 export interface EditorNavbarProps {
   isSidebarOpen: boolean;
@@ -12,6 +47,7 @@ export interface EditorNavbarProps {
   projectId: string;
   projectName: string;
   userId: string;
+  share?: EditorNavbarShareProps;
 }
 
 export const EditorNavbar: React.FC<EditorNavbarProps> = ({
@@ -20,10 +56,19 @@ export const EditorNavbar: React.FC<EditorNavbarProps> = ({
   projectId,
   projectName,
   userId,
+  share,
 }) => {
   const handleToggle = useCallback(() => {
     onToggleSidebar();
   }, [onToggleSidebar]);
+
+  const handleShareToggle = useCallback(() => {
+    if (share?.open) {
+      share.onClose();
+    } else {
+      share?.onOpenShare();
+    }
+  }, [share]);
 
   return (
     <header
@@ -53,7 +98,12 @@ export const EditorNavbar: React.FC<EditorNavbarProps> = ({
 
       {/* Right section – share and AI toggles */}
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" className="gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1"
+          onClick={handleShareToggle}
+        >
           <Share2 className="h-4 w-4" />
           Share
         </Button>
@@ -63,6 +113,26 @@ export const EditorNavbar: React.FC<EditorNavbarProps> = ({
         </Button>
         <UserButton />
       </div>
+
+      {/* Share dialog — composed when share context is provided */}
+      {share && (
+        <ShareDialog
+          open={share.open}
+          onClose={share.onClose}
+          project={share.project}
+          role={share.role}
+          currentEmail={share.currentEmail}
+          collaborators={share.collaborators}
+          inviteEmail={share.inviteEmail}
+          setInviteEmail={share.setInviteEmail}
+          isInviting={share.isInviting}
+          onInvite={share.onInvite}
+          onRemove={share.onRemove}
+          copyUrl={share.copyUrl}
+          isCopied={share.isCopied}
+          onCopyLink={share.onCopyLink}
+        />
+      )}
     </header>
   );
 };
