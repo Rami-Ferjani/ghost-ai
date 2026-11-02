@@ -35,11 +35,14 @@ function normalizeEmail(email: string): string {
 /**
  * Enforce server-side ownership: the caller may invite/remove only a project
  * they own (ownerId) or a collaborator of that project.
+ * Uses the caller's email to check collaborator status in projectCollaborator,
+ * and the project's ownerId to check ownership.
  * Returns 403 otherwise.
  */
 async function assertCanModifyProject(
   projectId: string,
-  userId: string,
+  email: string,
+  ownerId: string,
   prisma: PrismaClient
 ): Promise<void> {
   const project = await prisma.project.findUnique({
@@ -50,9 +53,9 @@ async function assertCanModifyProject(
     throw new CollaboratorServiceError(403, "Forbidden");
   }
 
-  const isOwner = project.ownerId === userId;
+  const isOwner = project.ownerId === ownerId;
   const isCollaborator = await prisma.projectCollaborator.findUnique({
-    where: { projectId_collaboratorEmail: { projectId, collaboratorEmail: userId } },
+    where: { projectId_collaboratorEmail: { projectId, collaboratorEmail: email } },
   });
 
   if (!isOwner && !isCollaborator) {
@@ -65,10 +68,19 @@ async function assertCanModifyProject(
  */
 export async function getCollaborators(
   projectId: string,
-  userId: string,
+  email: string,
   prisma: PrismaClient
 ): Promise<CollaboratorRow[]> {
-  await assertCanModifyProject(projectId, userId, prisma);
+  // First get the project to check ownership
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+
+  if (!project) {
+    throw new CollaboratorServiceError(403, "Forbidden");
+  }
+
+  await assertCanModifyProject(projectId, email, project.ownerId, prisma);
 
   const rows = await prisma.projectCollaborator.findMany({
     where: { projectId },
@@ -83,13 +95,13 @@ export async function getCollaborators(
  */
 export async function inviteCollaborator(
   projectId: string,
-  userId: string,
   email: string,
+  bodyEmail: string,
   prisma: PrismaClient
 ): Promise<CollaboratorRow> {
-  await assertCanModifyProject(projectId, userId, prisma);
+  await assertCanModifyProject(projectId, email, prisma);
 
-  const normalizedEmail = normalizeEmail(email);
+  const normalizedEmail = normalizeEmail(bodyEmail);
   if (!EMAIL_PATTERN.test(normalizedEmail)) {
     throw new CollaboratorServiceError(400, "Invalid collaborator email");
   }
@@ -118,13 +130,13 @@ export async function inviteCollaborator(
  */
 export async function removeCollaborator(
   projectId: string,
-  userId: string,
   email: string,
+  bodyEmail: string,
   prisma: PrismaClient
 ): Promise<void> {
-  await assertCanModifyProject(projectId, userId, prisma);
+  await assertCanModifyProject(projectId, email, prisma);
 
-  const normalizedEmail = normalizeEmail(email);
+  const normalizedEmail = normalizeEmail(bodyEmail);
   const row = await prisma.projectCollaborator.findUnique({
     where: { projectId_collaboratorEmail: { projectId, collaboratorEmail: normalizedEmail } },
   });

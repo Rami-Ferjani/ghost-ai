@@ -18,9 +18,12 @@ export async function getCurrentClerkIdentity() {
 /**
  * Check whether a user has access to a specific project.
  * Returns true if the user is the owner or a collaborator.
+ * Uses the user's email (from Clerk) to check collaborator status,
+ * and their Clerk user ID to check ownership.
  */
 export async function hasUserAccessToProject(
   userId: string,
+  email: string,
   projectId: string
 ): Promise<boolean> {
   const prisma = getPrismaClient();
@@ -30,7 +33,7 @@ export async function hasUserAccessToProject(
       where: { id: projectId, ownerId: userId },
     }),
     prisma.projectCollaborator.findUnique({
-      where: { projectId_collaboratorEmail: { projectId, collaboratorEmail: userId } },
+      where: { projectId_collaboratorEmail: { projectId, collaboratorEmail: email } },
     }),
   ]);
 
@@ -40,9 +43,11 @@ export async function hasUserAccessToProject(
 /**
  * Retrieve a project if the user has access to it.
  * Returns null if the project doesn't exist or the user has no access.
+ * Uses the user's email for collaborator checks and user ID for ownership.
  */
 export async function getAccessibleProject(
   userId: string,
+  email: string,
   projectId: string
 ): Promise<{
   id: string;
@@ -60,7 +65,7 @@ export async function getAccessibleProject(
     return null;
   }
 
-  const hasAccess = await hasUserAccessToProject(userId, projectId);
+  const hasAccess = await hasUserAccessToProject(userId, email, projectId);
 
   if (!hasAccess) {
     return null;
