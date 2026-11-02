@@ -9,7 +9,7 @@ export default async function EditorPage() {
     redirect("/sign-in");
   }
 
-  const { ownedProjects, sharedProjects } = await getProjectsForUser(userId);
+  const { ownedProjects, sharedProjects } = await getProjectsForUser(userId, email);
 
   return (
     <EditorClient

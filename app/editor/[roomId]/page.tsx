@@ -21,7 +21,7 @@ export default async function EditorWorkspacePage({
   }
 
   // Step 2: Verify access
-  const project = await getAccessibleProject(userId, roomId);
+  const project = await getAccessibleProject(userId, email, roomId);
   if (!project) {
     return <AccessDenied />;
   }

@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getPrismaClient } from "@/lib/prisma";
 import { fetchCollaboratorByEmail } from "@/lib/share-dialog-helpers";
 import {
@@ -14,11 +14,15 @@ export async function GET(_req: Request, { params }: { params: Promise<{ project
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const client = await clerkClient();
+  const user = userId ? await client.users.getUser(userId) : null;
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
+
   const { projectId } = await params;
   const prisma = getPrismaClient();
 
   // Ownership/access is enforced by the service (403 if not owner or collaborator).
-  const rows = await getCollaborators(projectId, userId, prisma);
+  const rows = await getCollaborators(projectId, email, prisma);
 
   // Enrich each collaborator row with Clerk display name/avatar, falling back
   // to the email-only form when enrichment fails or no Clerk user matches.
@@ -34,6 +38,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   if (!isAuthenticated) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const client = await clerkClient();
+  const user = userId ? await client.users.getUser(userId) : null;
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
 
   const { projectId } = await params;
   const prisma = getPrismaClient();
@@ -57,7 +65,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   try {
     const collaborator = await inviteCollaborator(
       projectId,
-      userId,
+      email,
       bodyEmail,
       prisma,
     );
@@ -75,6 +83,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ proje
   if (!isAuthenticated) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const client = await clerkClient();
+  const user = userId ? await client.users.getUser(userId) : null;
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
 
   const { projectId } = await params;
   const prisma = getPrismaClient();
@@ -96,7 +108,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ proje
   }
 
   try {
-    await removeCollaborator(projectId, userId, bodyEmail, prisma);
+    await removeCollaborator(projectId, email, bodyEmail, prisma);
     return Response.json({ success: true });
   } catch (err) {
     if (err instanceof CollaboratorServiceError) {
