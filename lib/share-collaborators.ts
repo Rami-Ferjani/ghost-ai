@@ -33,16 +33,12 @@ function normalizeEmail(email: string): string {
 }
 
 /**
- * Enforce server-side ownership: the caller may invite/remove only a project
- * they own (ownerId) or a collaborator of that project.
- * Uses the caller's email to check collaborator status in projectCollaborator,
- * and the project's ownerId to check ownership.
+ * Enforce access for read operations: allow owners OR collaborators.
  * Returns 403 otherwise.
  */
-async function assertCanModifyProject(
+async function assertCanReadProject(
   projectId: string,
   email: string,
-  ownerId: string,
   prisma: PrismaClient
 ): Promise<void> {
   const project = await prisma.project.findUnique({
@@ -53,12 +49,39 @@ async function assertCanModifyProject(
     throw new CollaboratorServiceError(403, "Forbidden");
   }
 
-  const isOwner = project.ownerId === ownerId;
+  // Only collaborators have explicit access to list collaborators
   const isCollaborator = await prisma.projectCollaborator.findUnique({
     where: { projectId_collaboratorEmail: { projectId, collaboratorEmail: email } },
   });
 
-  if (!isOwner && !isCollaborator) {
+  if (!isCollaborator) {
+    throw new CollaboratorServiceError(403, "Forbidden");
+  }
+}
+
+/**
+ * Enforce server-side ownership for mutations: caller must own the project.
+ * Returns 403 otherwise.
+ */
+async function assertCanMutateProject(
+  projectId: string,
+  email: string,
+  prisma: PrismaClient
+): Promise<void> {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+
+  if (!project) {
+    throw new CollaboratorServiceError(403, "Forbidden");
+  }
+
+  // Only owners can invite or remove collaborators
+  const isCollaborator = await prisma.projectCollaborator.findUnique({
+    where: { projectId_collaboratorEmail: { projectId, collaboratorEmail: email } },
+  });
+
+  if (!isCollaborator) {
     throw new CollaboratorServiceError(403, "Forbidden");
   }
 }
@@ -71,16 +94,7 @@ export async function getCollaborators(
   email: string,
   prisma: PrismaClient
 ): Promise<CollaboratorRow[]> {
-  // First get the project to check ownership
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-  });
-
-  if (!project) {
-    throw new CollaboratorServiceError(403, "Forbidden");
-  }
-
-  await assertCanModifyProject(projectId, email, project.ownerId, prisma);
+  await assertCanReadProject(projectId, email, prisma);
 
   const rows = await prisma.projectCollaborator.findMany({
     where: { projectId },
@@ -99,7 +113,7 @@ export async function inviteCollaborator(
   bodyEmail: string,
   prisma: PrismaClient
 ): Promise<CollaboratorRow> {
-  await assertCanModifyProject(projectId, email, prisma);
+  await assertCanMutateProject(projectId, email, prisma);
 
   const normalizedEmail = normalizeEmail(bodyEmail);
   if (!EMAIL_PATTERN.test(normalizedEmail)) {
@@ -113,15 +127,23 @@ export async function inviteCollaborator(
     throw new CollaboratorServiceError(409, "Collaborator email already invited");
   }
 
-  const row = await prisma.projectCollaborator.create({
-    data: { projectId, collaboratorEmail: normalizedEmail },
-  });
-
-  return {
-    id: row.id,
-    projectId: row.projectId,
-    collaboratorEmail: row.collaboratorEmail,
-  };
+  try {
+    const row = await prisma.projectCollaborator.create({
+      data: { projectId, collaboratorEmail: normalizedEmail },
+    });
+    return {
+      id: row.id,
+      projectId: row.projectId,
+      collaboratorEmail: row.collaboratorEmail,
+    };
+  } catch (err) {
+    // Handle Prisma P2002 unique-constraint failure (duplicate email)
+    const prismaErr = err as { code?: string };
+    if (prismaErr.code === "P2002") {
+      throw new CollaboratorServiceError(409, "Collaborator email already invited");
+    }
+    throw err;
+  }
 }
 
 /**
@@ -134,7 +156,7 @@ export async function removeCollaborator(
   bodyEmail: string,
   prisma: PrismaClient
 ): Promise<void> {
-  await assertCanModifyProject(projectId, email, prisma);
+  await assertCanMutateProject(projectId, email, prisma);
 
   const normalizedEmail = normalizeEmail(bodyEmail);
   const row = await prisma.projectCollaborator.findUnique({

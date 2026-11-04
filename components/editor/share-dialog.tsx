@@ -87,7 +87,8 @@ export const ShareDialog: React.FC<ShareDialogProps> = ({
     if (!inviteEmail.trim() || isInviting) return;
     setLocalInviteError(null);
     await onInvite();
-    setInviteEmail(inviteEmail.trim().toLowerCase());
+    // Remove post-invite write-back to avoid overwriting parent's field state
+    // after onInvite resolves; preserve clear/reset behavior.
   };
 
   const handleRemove = async (email: string) => {
@@ -95,7 +96,12 @@ export const ShareDialog: React.FC<ShareDialogProps> = ({
   };
 
   const handleCopyLink = async () => {
-    await onCopyLink();
+    try {
+      await navigator.clipboard.writeText(copyUrl);
+      await onCopyLink();
+    } catch {
+      // Write failure: leave feedback unset; do not overwrite parent state.
+    }
   };
 
   if (!project || !role) return null;
@@ -147,6 +153,13 @@ export const ShareDialog: React.FC<ShareDialogProps> = ({
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{collaborator.name}</span>
+                      {collaborator.avatarUrl && (
+                        <img
+                          src={collaborator.avatarUrl}
+                          alt={collaborator.name}
+                          className="h-6 w-6 rounded-full"
+                        />
+                      )}
                       <span className="text-muted-foreground">{collaborator.email}</span>
                     </div>
                     {isOwner && (

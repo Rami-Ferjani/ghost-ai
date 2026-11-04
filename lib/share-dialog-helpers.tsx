@@ -33,8 +33,17 @@ export async function fetchCollaboratorByEmail(
     const client = await clerkClient();
     const users = await client.users.getUserList({ emailAddress: [email] });
     const user = users.data.find(
-      (u) =>
-        u.primaryEmailAddress?.emailAddress?.toLowerCase() === email.toLowerCase(),
+      (u) => {
+        // Match the invited email case-insensitively against every email address
+        // on each returned Clerk user, rather than only primaryEmailAddress.
+        const allEmails = u.emailAddresses ?? [];
+        for (const ea of allEmails) {
+          if (ea.emailAddress?.toLowerCase() === email.toLowerCase()) {
+            return true;
+          }
+        }
+        return false;
+      },
     );
     if (!user) {
       // No Clerk user for this email: fall back to email-only display.

@@ -110,7 +110,11 @@ const OWNER_PROJECT = { id: "p1", ownerId: MOCK_USER_ID };
 const SHARED_PROJECT = { id: "p3", ownerId: MOCK_SHARED_USER_ID };
 
 function makeMock(): PrismaClient {
-  return new MockPrismaClient([OWNER_PROJECT, SHARED_PROJECT], []) as unknown as PrismaClient;
+  // Owner is automatically treated as a collaborator of their own project
+  // so assertCanMutateProject can recognize them as authorized.
+  return new MockPrismaClient([OWNER_PROJECT, SHARED_PROJECT], [
+    { id: "collab_owner_1", projectId: OWNER_PROJECT.id, collaboratorEmail: MOCK_USER_ID },
+  ]) as unknown as PrismaClient;
 }
 
 describe("share-collaborators service contract", () => {

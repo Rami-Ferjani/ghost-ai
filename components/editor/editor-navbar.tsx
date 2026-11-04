@@ -103,6 +103,7 @@ export const EditorNavbar: React.FC<EditorNavbarProps> = ({
           size="sm"
           className="gap-1"
           onClick={handleShareToggle}
+          disabled={!share?.project}
         >
           <Share2 className="h-4 w-4" />
           Share

@@ -18,6 +18,7 @@ export default function TestEditorChrome() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const action = useProjectAction({ currentUserId, activeProjectId: selectedProjectId });
+  const [role, setRole] = useState<"owner" | "collaborator">("owner");
 
   // Share-dialog test vehicle: mock enriched collaborators for the owner view,
   // plus local state to drive the owner/collaborator share views and copy feedback.
@@ -56,6 +57,17 @@ export default function TestEditorChrome() {
           <p className="text-muted-foreground">
             Toggle the sidebar using the button in the top-left corner.
           </p>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Role:</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as "owner" | "collaborator")}
+              className="border rounded px-2 py-1"
+            >
+              <option value="owner">Owner</option>
+              <option value="collaborator">Collaborator</option>
+            </select>
+          </div>
         </main>
       </div>
 
@@ -84,36 +96,40 @@ export default function TestEditorChrome() {
 
       {/* ShareDialog test views: owner (invite form + remove + copy-link) and
           collaborator (read-only list + copy-link) for the same project. */}
-      <ShareDialog
-        open={true}
-        onClose={() => {}}
-        project={MOCK_PROJECTS[0]}
-        role="owner"
-        currentEmail="user_1"
-        collaborators={MOCK_COLLABORATORS}
-        inviteEmail={ownerShareInviteEmail}
-        setInviteEmail={setOwnerShareInviteEmail}
-        onInvite={async () => {}}
-        onRemove={async () => {}}
-        copyUrl="https://ghost-ai.app/phoenix-architecture"
-        isCopied={ownerShareCopied}
-        onCopyLink={async () => { setOwnerShareCopied(true); }}
-      />
-      <ShareDialog
-        open={true}
-        onClose={() => {}}
-        project={MOCK_PROJECTS[0]}
-        role="collaborator"
-        currentEmail="alice@example.com"
-        collaborators={MOCK_COLLABORATORS}
-        inviteEmail={collabShareInviteEmail}
-        setInviteEmail={setCollabShareInviteEmail}
-        onInvite={async () => {}}
-        onRemove={async () => {}}
-        copyUrl="https://ghost-ai.app/phoenix-architecture"
-        isCopied={collabShareCopied}
-        onCopyLink={async () => { setCollabShareCopied(true); }}
-      />
+      {role === "owner" && (
+        <ShareDialog
+          open={true}
+          onClose={() => {}}
+          project={MOCK_PROJECTS[0]}
+          role="owner"
+          currentEmail="user_1"
+          collaborators={MOCK_COLLABORATORS}
+          inviteEmail={ownerShareInviteEmail}
+          setInviteEmail={setOwnerShareInviteEmail}
+          onInvite={async () => {}}
+          onRemove={async () => {}}
+          copyUrl="https://ghost-ai.app/phoenix-architecture"
+          isCopied={ownerShareCopied}
+          onCopyLink={async () => { setOwnerShareCopied(true); }}
+        />
+      )}
+      {role === "collaborator" && (
+        <ShareDialog
+          open={true}
+          onClose={() => {}}
+          project={MOCK_PROJECTS[0]}
+          role="collaborator"
+          currentEmail="alice@example.com"
+          collaborators={MOCK_COLLABORATORS}
+          inviteEmail={collabShareInviteEmail}
+          setInviteEmail={setCollabShareInviteEmail}
+          onInvite={async () => {}}
+          onRemove={async () => {}}
+          copyUrl="https://ghost-ai.app/phoenix-architecture"
+          isCopied={collabShareCopied}
+          onCopyLink={async () => { setCollabShareCopied(true); }}
+        />
+      )}
     </div>
   )
 }

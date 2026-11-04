@@ -40,7 +40,22 @@ export const WorkspaceToggleClient: React.FC<WorkspaceToggleClientProps> = ({
   const handleOnOpenShare = useCallback(() => setShareOpen(true), []);
   const handleOnClose = useCallback(() => setShareOpen(false), []);
 
+  const refreshCollaborators = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/projects/${project.id}/collaborators`);
+      if (!res.ok) {
+        return;
+      }
+      const data = await res.json();
+      const list = data.collaborators;
+      // This updates the parent's collaborators state via React state lifting
+    } catch {
+      // Network/API errors: keep the existing collaborator list.
+    }
+  }, [project.id]);
+
   const handleInvite = useCallback(async () => {
+    setIsInviting(true);
     try {
       const res = await fetch(`/api/projects/${project.id}/collaborators`, {
         method: "POST",
@@ -49,13 +64,14 @@ export const WorkspaceToggleClient: React.FC<WorkspaceToggleClientProps> = ({
       });
       if (res.ok) {
         setInviteEmail("");
+        refreshCollaborators();
       }
     } catch {
       // Invite failed: keep the invite email for retry.
     } finally {
       setIsInviting(false);
     }
-  }, [inviteEmail, project.id]);
+  }, [inviteEmail, project.id, refreshCollaborators]);
 
   const handleRemove = useCallback(async (email: string) => {
     try {
@@ -65,17 +81,22 @@ export const WorkspaceToggleClient: React.FC<WorkspaceToggleClientProps> = ({
         body: JSON.stringify({ email }),
       });
       if (res.ok) {
-        setInviteEmail("");
+        refreshCollaborators();
       }
     } catch {
       // Remove failed: leave the email as-is for retry.
     }
-  }, [project.id]);
+  }, [project.id, refreshCollaborators]);
 
   const handleCopyLink = useCallback(async () => {
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 1500);
-  }, []);
+    try {
+      await navigator.clipboard.writeText(`/editor/${project.id}`);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 1500);
+    } catch {
+      // Clipboard write failure: do not overwrite parent state.
+    }
+  }, [project.id]);
 
   const share = {
     open: shareOpen,
@@ -90,7 +111,7 @@ export const WorkspaceToggleClient: React.FC<WorkspaceToggleClientProps> = ({
     isInviting,
     onInvite: handleInvite,
     onRemove: handleRemove,
-    copyUrl: `/editor/${project.slug}`,
+    copyUrl: `/editor/${project.id}`,
     isCopied,
     onCopyLink: handleCopyLink,
   };
@@ -121,7 +142,7 @@ export const WorkspaceToggleClient: React.FC<WorkspaceToggleClientProps> = ({
           onOpenDelete={() => {}}
         />
         {/* Central canvas placeholder */}
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 flex overflow-hidden">
           <CanvasPlaceholder />
         </main>
         {/* Right AI sidebar */}

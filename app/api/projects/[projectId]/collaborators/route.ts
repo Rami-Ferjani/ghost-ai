@@ -21,16 +21,20 @@ export async function GET(_req: Request, { params }: { params: Promise<{ project
   const { projectId } = await params;
   const prisma = getPrismaClient();
 
-  // Ownership/access is enforced by the service (403 if not owner or collaborator).
-  const rows = await getCollaborators(projectId, email, prisma);
+  try {
+    const rows = await getCollaborators(projectId, email, prisma);
 
-  // Enrich each collaborator row with Clerk display name/avatar, falling back
-  // to the email-only form when enrichment fails or no Clerk user matches.
-  const enriched = await Promise.all(
-    rows.map((row) => fetchCollaboratorByEmail(row.collaboratorEmail)),
-  );
+    const enriched = await Promise.all(
+      rows.map((row) => fetchCollaboratorByEmail(row.collaboratorEmail)),
+    );
 
-  return Response.json({ collaborators: enriched });
+    return Response.json({ collaborators: enriched });
+  } catch (err) {
+    if (err instanceof CollaboratorServiceError) {
+      return Response.json({ error: err.message }, { status: err.status });
+    }
+    throw err;
+  }
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ projectId: string }> }) {

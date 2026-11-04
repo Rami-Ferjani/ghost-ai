@@ -35,6 +35,21 @@ Update this file whenever the current phase, active feature, or implementation s
 - Added `app/api/projects/[projectId]/collaborators/route.ts` — GET list (enriched via `fetchCollaboratorByEmail`), POST invite, DELETE remove; Clerk auth 401, ownership/access delegated to the service, `CollaboratorServiceError` mapped to its HTTP status. ✅ Complete (Lane 1; new file lint-clean, `npm run build` passes).
 - Wired `ShareDialog` into the editor layers — `editor-navbar.tsx` Share button composition, `editor-client.tsx` share state + role/copyUrl derivation, `workspace-toggle-client.tsx` share model + invite/remove handlers, `workspace-layout.tsx` role/currentEmail/collaborators passthrough, `app/editor/page.tsx` currentEmail, `app/editor/[roomId]/page.tsx` server-side collaborator fetch/role/currentEmail/collaborators. ✅ Complete (Lane 2; fixed room-page role derivation to match current user email case-insensitively so collaborators no longer get `role=null`/hidden dialog).
 - Final integration verification — fresh-context read-only review of the combined diff (API route + six wiring files + inline fixes) found and fixed a room-page role-derivation bug (collaborator match against Clerk user id instead of email); `npm run build` exit 0; diff files lint-clean (only pre-existing `auth`-unused warning in room page). ✅ Complete.
+- **Applied review comments for share-dialog Task 4–5:**
+  - Split `assertCanModifyProject` into `assertCanReadProject` (owner + collaborator) and `assertCanMutateProject` (owner only)
+  - Simplified `getCollaborators` to remove redundant project/ownership validation
+  - Updated `inviteCollaborator` and `removeCollaborator` to call the new mutate assertion
+  - Added P2002 unique-constraint catch block in `inviteCollaborator`
+  - Updated `fetchCollaboratorByEmail` to check ALL Clerk email addresses (not just primary)
+  - Removed post-invite `setInviteEmail` write-back in `handleInvite`
+  - Added avatar rendering to collaborator list
+  - Fixed copy handler to actually copy to clipboard
+  - Disabled Share button when no project is selected (`share?.project`)
+  - Removed duplicate ShareDialog from `editor-client.tsx` (only one mounted in workspace page)
+  - Removed duplicate invite/remove handlers from `editor-client.tsx`
+  - Updated copyUrl to use project ID instead of slug
+  - Added `refreshCollaborators` after successful invite/remove
+  - Updated mock test to handle owner check for MOCK_USER_ID
 - **Fixed collaborator access control logic — collaborators can now properly access projects when invited because:**
   - Updated `lib/project-access.ts` to use email for collaborator checks (`hasUserAccessToProject` and `getAccessibleProject`) instead of comparing userId directly
   - Updated `lib/share-collaborators.ts` to use email for collaborator lookups and ownership checks instead of comparing userId directly
@@ -47,11 +62,12 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## In Progress
 
-- None - All collaborator access issues fixed
+- None - All review comments applied
 
 ## Next Up
 
-- (Share-dialog Tasks 4–5 and final integration verification complete — see Completed above.)
+- Run `npm run build` and `npx tsc --noEmit` to verify final state
+- Commit changes with descriptive message
 
 ## Open Questions
 

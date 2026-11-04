@@ -3,6 +3,7 @@ import { getProjectsForUser } from "@/lib/projects";
 import { getCurrentClerkIdentity } from "@/lib/project-access";
 import { EditorClient } from "@/components/editor/editor-client";
 
+
 export default async function EditorPage() {
   const { userId, email } = await getCurrentClerkIdentity();
   if (!userId) {

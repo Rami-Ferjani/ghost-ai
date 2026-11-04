@@ -4,45 +4,50 @@ const [laneApi, laneUi] = await runs.all([
     label: "Add Task 5 ProjectCollaborator API route",
     agent: "worker",
     task: `
-GOAL: Add the ProjectCollaborator API route (Task 5 of the 2026-11-01-share-dialog plan), enforcing the share-dialog collaborator API contracts per the plan Definition of Done.
+    // Make the workflow file parseable by ESLint
+    module.exports = {
+      laneApi, laneUi
+    };
 
-Repository/cwd: C:\\Users\\ramif\\orca\\workspaces\\ghost-ai\\feat-editor-access-sharing (branch feat/editor-access-sharing).
+    GOAL: Add the ProjectCollaborator API route (Task 5 of the 2026-11-01-share-dialog plan),
 
-EDIT BOUNDARY / AUTHORITY: You own exactly ONE source seam: the new file
-  app/api/projects/[projectId]/collaborators/route.ts
-(plus only its own validation). You may NOT edit any other file in the repo. Do NOT run git status/commit/staged changes. Only create the route file, then run your own validation commands.
+    Repository/cwd: C:\Users\ramif\orca\workspaces\ghost-ai\feat-editor-access-sharing (branch feat/editor-access-sharing).
 
-CONTEXT / EVIDENCE (already read):
-- Existing auth pattern to copy exactly: app/api/projects/[projectId]/route.ts uses
-  \`const { isAuthenticated, userId } = await auth(); if (!isAuthenticated) return Response.json({error:"Unauthorized"},{status:401});\`
-  then \`const prisma = getPrismaClient();\` and returns 403 for missing project.
-- lib/share-collaborators.ts exports: getCollaborators(projectId, userId, prisma), inviteCollaborator(projectId, userId, email, prisma), removeCollaborator(projectId, userId, email, prisma), CollaboratorServiceError (has \`status\`).
-- lib/share-dialog-helpers.tsx exports fetchCollaboratorByEmail(email) -> CollaboratorEnrichment (name, avatarUrl, email).
-- The client (Task 4, not yet written) will fetch GET /api/projects/[projectId]/collaborators and expect { collaborators: CollaboratorEnrichment[] }.
+    EDIT BOUNDARY / AUTHORITY: You own exactly ONE source seam: the new file
+      app/api/projects/[projectId]/collaborators/route.ts
+    (plus only its own validation). You may NOT edit any other file in the repo. Do NOT run git status/commit/staged changes. Only create the route file, then run your own validation commands.
 
-IMPLEMENTATION:
-Create app/api/projects/[projectId]/collaborators/route.ts with three route handlers following Next.js route conventions:
-- GET: auth 401 if not authenticated. Require ownership/access by calling getCollaborators(projectId, userId, getPrismaClient()) — the service enforces 403 if the caller is neither owner nor collaborator or the project is missing. Then enrich every row with fetchCollaboratorByEmail(row.collaboratorEmail) via Promise.all. Return { collaborators: enriched[] }.
-- POST (invite): auth 401. Parse JSON body { email }. Call inviteCollaborator(projectId, userId, email, getPrismaClient()) — the service enforces 403 (ownership), 400 (invalid email via EMAIL_PATTERN), 409 (duplicate). Map any CollaboratorServiceError to its \`status\`: return Response.json({error: err.message}, {status: err.status}). On success return { collaborator: { id, projectId, collaboratorEmail } }.
-- DELETE (remove): auth 401. Parse JSON body { email }. Call removeCollaborator(projectId, userId, email, getPrismaClient()) — service enforces 403 (ownership), 404 (not found). Map CollaboratorServiceError to its status. On success return { success: true }.
+    CONTEXT / EVIDENCE (already read):
+    - Existing auth pattern to copy exactly: app/api/projects/[projectId]/route.ts uses
+      const { isAuthenticated, userId } = await auth(); if (!isAuthenticated) return Response.json({error:"Unauthorized"},{status:401});
+      then const prisma = getPrismaClient(); and returns 403 for missing project.
+    - lib/share-collaborators.ts exports: getCollaborators(projectId, userId, prisma), inviteCollaborator(projectId, userId, email, prisma), removeCollaborator(projectId, userId, email, prisma), CollaboratorServiceError (has status).
+    - lib/share-dialog-helpers.tsx exports fetchCollaboratorByEmail(email) -> CollaboratorEnrichment (name, avatarUrl, email).
+    - The client (Task 4, not yet written) will fetch GET /api/projects/[projectId]/collaborators and expect { collaborators: CollaboratorEnrichment[] }.
 
-Rules:
-- Use auth() and getPrismaClient() from @clerk/nextjs/server and @/lib/prisma exactly as in the existing route.
-- Rely on the service's assertCanModifyProject for 403 — do not bypass or reimplement ownership checks.
-- Enrichment must use fetchCollaboratorByEmail (Clerk getUserList with emailAddress filter, email-only fallback).
-- Route params: \`{ params }: { params: Promise<{ projectId: string }> }\`.
+    IMPLEMENTATION:
+    Create app/api/projects/[projectId]/collaborators/route.ts with three route handlers following Next.js route conventions:
+    - GET: auth 401 if not authenticated. Require ownership/access by calling getCollaborators(projectId, userId, getPrismaClient()) — the service enforces 403 if the caller is neither owner nor collaborator or the project is missing. Then enrich every row with fetchCollaboratorByEmail(row.collaboratorEmail) via Promise.all. Return { collaborators: enriched[] }.
+    - POST (invite): auth 401. Parse JSON body { email }. Call inviteCollaborator(projectId, userId, email, getPrismaClient()) — the service enforces 403 (ownership), 400 (invalid email via EMAIL_PATTERN), 409 (duplicate). Map any CollaboratorServiceError to its status: return Response.json({error: err.message}, {status: err.status}). On success return { collaborator: { id, projectId, collaboratorEmail } }.
+    - DELETE (remove): auth 401. Parse JSON body { email }. Call removeCollaborator(projectId, userId, email, getPrismaClient()) — service enforces 403 (ownership), 404 (not found). Map CollaboratorServiceError to its status. On success return { success: true }.
 
-SUCCESS CRITERIA:
-- Route file exists and builds/lints cleanly (npm run build, npm run lint).
-- GET/POST/DELETE handlers implement the status contracts: GET 401 unauth; POST/DELETE 401 unauth; ownership 403; duplicate email 409; invalid email 400; not-found 404 (remove).
-- No other files changed.
+    Rules:
+    - Use auth() and getPrismaClient() from @clerk/nextjs/server and @/lib/prisma exactly as in the existing route.
+    - Rely on the service's assertCanModifyProject for 403 — do not bypass or reimplement ownership checks.
+    - Enrichment must use fetchCollaboratorByEmail (Clerk getUserList with emailAddress filter, email-only fallback).
+    - Route params: { params }: { params: Promise<{ projectId: string }> }.
 
-VALIDATION: run npm run build and npm run lint in the repo and confirm clean output.
+    SUCCESS CRITERIA:
+    - Route file exists and builds/lints cleanly (npm run build, npm run lint).
+    - GET/POST/DELETE handlers implement the status contracts: GET 401 unauth; POST/DELETE 401 unauth; ownership 403; duplicate email 409; invalid email 400; not-found 404 (remove).
+    - No other files changed.
 
-STOP/ESCALATION: If the build/lint fails, fix only within your seam (the route file) and re-run. If you cannot resolve, report the exact failure and stop — do not edit other files.
+    VALIDATION: run npm run build and npm run lint in the repo and confirm clean output.
 
-Expected OUTPUT: a concise report with the created file path, the three handler contracts, the validation commands run and their clean results, and the list of files you touched (should be exactly one file).
-`,
+    STOP/ESCALATION: If the build/lint fails, fix only within your seam (the route file) and re-run. If you cannot resolve, report the exact failure and stop — do not edit other files.
+
+    Expected OUTPUT: a concise report with the created file path, the three handler contracts, the validation commands run and their clean results, and the list of files you touched (should be exactly one file).
+    `,
   },
   {
     key: "lane-ui-wiring",
@@ -51,7 +56,7 @@ Expected OUTPUT: a concise report with the created file path, the three handler 
     task: `
 GOAL: Wire the ShareDialog into the editor layers (Task 4 of the 2026-11-01-share-dialog plan) and pass share context from the editor layers and the room page, per the handoff and plan §10/§13.
 
-Repository/cwd: C:\\Users\\ramif\\orca\\workspaces\\ghost-ai\\feat-editor-access-sharing (branch feat/editor-access-sharing).
+Repository/cwd: C:\Users\ramif\orca\workspaces\ghost-ai\feat-editor-access-sharing (branch feat/editor-access-sharing).
 
 EDIT BOUNDARY / AUTHORITY: You own exactly these files (exclusive):
   components/editor/editor-navbar.tsx
@@ -72,12 +77,12 @@ CONTEXT / EVIDENCE (already read):
 - lib/project-access.ts getCurrentClerkIdentity returns {userId,email}; getAccessibleProject returns the subset shape.
 
 IMPLEMENTATION (follow the plan §10 files and the share-model design below):
-1. editor-navbar.tsx: Add exported interface EditorNavbarShareProps (the share model object): { open, onClose, onOpenShare, project: Project|null, role, currentEmail, collaborators, inviteEmail, setInviteEmail, isInviting, onInvite, onRemove, copyUrl, isCopied, onCopyLink }. Extend EditorNavbarProps with optional \`share?: EditorNavbarShareProps\`. Import ShareDialog (from @/components/editor/share-dialog), type CollaboratorEnrichment (from @/lib/share-dialog-helpers), type Project (from @/types/project). Wire the existing Share button: onClick = if share?.open then share.onClose() else share?.onOpenShare(). When share is provided, render <ShareDialog ...> with all share props. Do not change the existing sidebar/AI/UserButton behavior.
-2. editor-client.tsx: Add \`currentEmail?: string\` to EditorClientProps. Own state: shareOpen, inviteEmail, isInviting, isCopied, collaborators (CollaboratorEnrichment[]). Add refreshCollaborators(): fetch GET /api/projects/\${selectedProjectId}/collaborators; on ok set collaborators to data.collaborators (fall back [] if not an array). Wire a useEffect that calls refreshCollaborators when selectedProjectId changes. Derive selectedProject = allProjects.find(p=>p.id===selectedProjectId) ?? null, copyUrl = selectedProject ? \`/editor/\${selectedProject.slug}\` : "", role = owner if selectedProject.ownerId===currentUserId else collaborator if (currentEmail && collaborators.some(c=>c.email===currentEmail)) else null. Handlers (use useCallback): onInvite -> POST /api/projects/\${selectedProjectId}/collaborators {email:inviteEmail; on ok clear inviteEmail, finally set isInviting false. onRemove(email) -> DELETE ... {email}; on ok clear inviteEmail. onCopyLink -> setIsCopied(true), after ~1500ms setIsCopied(false). onOpenShare/onClose -> setShareOpen true/false. Build the share model object with all the fields above (project=selectedProject, role, currentEmail=currentEmail ?? "", collaborators, inviteEmail, setInviteEmail, isInviting, onInvite, onRemove, copyUrl, isCopied, onCopyLink, open=shareOpen, onClose, onOpenShare). Pass share={share} to <EditorNavbar ...> (alongside existing props).
-3. workspace-toggle-client.tsx: Extend WorkspaceToggleClientProps with role: "owner"|"collaborator"|null, currentEmail: string, collaborators: CollaboratorEnrichment[]. Own share state: shareOpen, inviteEmail, isInviting, isCopied. Build share model with handlers using fetch to /api/projects/\${project.id}/collaborators: onInvite -> POST {email:inviteEmail}; onRemove(email) -> DELETE {email}; onCopyLink -> setIsCopied(true) + 1500ms reset. copyUrl = \`/editor/\${project.slug}\`. Pass share={share} to <EditorNavbar ...> (alongside existing props). Do not add new project/userId data from props.
+1. editor-navbar.tsx: Add exported interface EditorNavbarShareProps (the share model object): { open, onClose, onOpenShare, project: Project|null, role, currentEmail, collaborators, inviteEmail, setInviteEmail, isInviting, onInvite, onRemove, copyUrl, isCopied, onCopyLink }. Extend EditorNavbarProps with optional share?: EditorNavbarShareProps. Import ShareDialog (from @/components/editor/share-dialog), type CollaboratorEnrichment (from @/lib/share-dialog-helpers), type Project (from @/types/project). Wire the existing Share button: onClick = if share?.open then share.onClose() else share?.onOpenShare(). When share is provided, render <ShareDialog ...> with all share props. Do not change the existing sidebar/AI/UserButton behavior.
+2. editor-client.tsx: Add currentEmail?: string to EditorClientProps. Own state: shareOpen, inviteEmail, isInviting, isCopied, collaborators (CollaboratorEnrichment[]). Add refreshCollaborators(): fetch GET /api/projects/{selectedProjectId}/collaborators; on ok set collaborators to data.collaborators (fall back [] if not an array). Wire a useEffect that calls refreshCollaborators when selectedProjectId changes. Derive selectedProject = allProjects.find(p=>p.id===selectedProjectId) ?? null, copyUrl = selectedProject ? /editor/{selectedProject.slug} : "", role = owner if selectedProject.ownerId===currentUserId else collaborator if (currentEmail && collaborators.some(c=>c.email===currentEmail)) else null. Handlers (use useCallback): onInvite -> POST /api/projects/{selectedProjectId}/collaborators {email:inviteEmail; on ok clear inviteEmail, finally set isInviting false. onRemove(email) -> DELETE ... {email}; on ok clear inviteEmail. onCopyLink -> setIsCopied(true), after ~1500ms setIsCopied(false). onOpenShare/onClose -> setShareOpen true/false. Build the share model object with all the fields above (project=selectedProject, role, currentEmail=currentEmail ?? "", collaborators, inviteEmail, setInviteEmail, isInviting, onInvite, onRemove, copyUrl, isCopied, onCopyLink, open=shareOpen, onClose, onOpenShare). Pass share={share} to <EditorNavbar ...> (alongside existing props).
+3. workspace-toggle-client.tsx: Extend WorkspaceToggleClientProps with role: "owner"|"collaborator"|null, currentEmail: string, collaborators: CollaboratorEnrichment[]. Own share state: shareOpen, inviteEmail, isInviting, isCopied. Build share model with handlers using fetch to /api/projects/{project.id}/collaborators: onInvite -> POST {email:inviteEmail}; onRemove(email) -> DELETE {email}; onCopyLink -> setIsCopied(true) + 1500ms reset. copyUrl = /editor/{project.slug}. Pass share={share} to <EditorNavbar ...> (alongside existing props). Do not add new project/userId data from props.
 4. workspace-layout.tsx: Extend WorkspaceLayoutProps with role, currentEmail, collaborators. Pass these (plus project, userId) to <WorkspaceToggleClient ...>. No new state here.
-5. app/editor/page.tsx: change auth to \`const { isAuthenticated, userId, email } = await auth();\`, and pass \`currentEmail={email}\` to <EditorClient ...>.
-6. app/editor/[roomId]/page.tsx: after getAccessibleProject, fetch collaborators server-side: \`const collaborators = await getCollaborators(project.id, userId, getPrismaClient()); const enriched = await Promise.all(collaborators.map(c => fetchCollaboratorByEmail(c.collaboratorEmail)));\` derive role = project.ownerId === userId ? "owner" : (enriched.some(c => c.email === userId) ? "collaborator" : null). Pass role, currentEmail={email}, collaborators to <WorkspaceLayout ... role={role} currentEmail={email} collaborators={enriched} />. Keep existing redirect/AccessDenied behavior. Add the needed imports (getCollaborators, fetchCollaboratorByEmail, getPrismaClient).
+5. app/editor/page.tsx: change auth to const { isAuthenticated, userId, email } = await auth();, and pass currentEmail={email} to <EditorClient ...>.
+6. app/editor/[roomId]/page.tsx: after getAccessibleProject, fetch collaborators server-side: const collaborators = await getCollaborators(project.id, userId, getPrismaClient()); const enriched = await Promise.all(collaborators.map(c => fetchCollaboratorByEmail(c.collaboratorEmail))); derive role = project.ownerId === userId ? "owner" : (enriched.some(c => c.email === userId) ? "collaborator" : null). Pass role, currentEmail={email}, collaborators to <WorkspaceLayout ... role={role} currentEmail={email} collaborators={enriched} />. Keep existing redirect/AccessDenied behavior. Add the needed imports (getCollaborators, fetchCollaboratorByEmail, getPrismaClient).
 
 Rules:
 - Client components may only fetch the API route; do NOT call getCollaborators/inviteCollaborator directly (those need prisma, server-only).
@@ -95,7 +100,9 @@ VALIDATION: run npm run build and npm run lint in the repo and confirm clean out
 STOP/ESCALATION: If build/lint fails, fix only within your files (editor-navbar, editor-client, workspace-toggle-client, workspace-layout, app/editor/page.tsx, app/editor/[roomId]/page.tsx). Do not edit files from Lane 1. If you cannot resolve, report the exact failure and stop.
 
 Expected OUTPUT: a concise report with the files changed, the share-model wiring summary, and the validation commands run and their clean results.
-`,
+    `,
   }
 ]);
 return [laneApi.output, laneUi.output];
+
+module.exports = { laneApi, laneUi };

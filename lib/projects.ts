@@ -2,22 +2,22 @@ import { getPrismaClient } from "@/lib/prisma";
 import { slugFromName } from "@/lib/slug";
 import type { Project } from "@/types/project";
 
-export async function getProjectsForUser(userId: string) {
+export async function getProjectsForUser(userId: string, email?: string) {
   const prisma = getPrismaClient();
+
+  const normalizedEmail = email ? email.trim().toLowerCase() : "";
 
   const [ownedProjects, collaboratorRows] = await Promise.all([
     prisma.project.findMany({
       where: { ownerId: userId },
       orderBy: { createdAt: "desc" },
     }),
-    // Query collaborator relation directly, matching collaboratorEmail to current user
+    // Query collaborator relation directly, matching collaboratorEmail to current user email if provided, else userId
     prisma.projectCollaborator.findMany({
-      where: { collaboratorEmail: userId },
+      where: { collaboratorEmail: normalizedEmail || userId },
       include: { project: true },
     }),
   ]);
-
-  const ownedIds = new Set(ownedProjects.map((project) => project.id));
 
   const transformProject = (project: {
     id: string;
