@@ -106,14 +106,16 @@ class MockPrismaClient {
   }
 }
 
+const MOCK_USER_ID = 'user_1';
+const MOCK_SHARED_USER_ID = 'user_other';
+
 const OWNER_PROJECT = { id: "p1", ownerId: MOCK_USER_ID };
 const SHARED_PROJECT = { id: "p3", ownerId: MOCK_SHARED_USER_ID };
 
 function makeMock(): PrismaClient {
-  // Owner is automatically treated as a collaborator of their own project
-  // so assertCanMutateProject can recognize them as authorized.
+  // Owner is NOT automatically a collaborator; ownership is checked separately
   return new MockPrismaClient([OWNER_PROJECT, SHARED_PROJECT], [
-    { id: "collab_owner_1", projectId: OWNER_PROJECT.id, collaboratorEmail: MOCK_USER_ID },
+    { id: "collab_alice_1", projectId: OWNER_PROJECT.id, collaboratorEmail: "alice@example.com" },
   ]) as unknown as PrismaClient;
 }
 
@@ -121,7 +123,7 @@ describe("share-collaborators service contract", () => {
   it("lists collaborators for an owner project", async () => {
     const prisma = makeMock();
 
-    const rows = await getCollaborators(OWNER_PROJECT.id, MOCK_USER_ID, prisma);
+    const rows = await getCollaborators(OWNER_PROJECT.id, MOCK_USER_ID, "owner@example.com", prisma);
 
     assert.ok(Array.isArray(rows));
     assert.equal(rows.length, 0);
@@ -191,6 +193,36 @@ describe("share-collaborators service contract", () => {
 
     await assert.doesNotReject(
       () => removeCollaborator(OWNER_PROJECT.id, MOCK_USER_ID, "bob@example.com", prisma)
+    );
+  });
+
+  it("owner can list collaborators without being a collaborator", async () => {
+    const prisma = makeMock();
+
+    // Owner has access but is not listed as a collaborator
+    const rows = await getCollaborators(OWNER_PROJECT.id, MOCK_USER_ID, "owner@example.com", prisma);
+
+    assert.ok(Array.isArray(rows));
+    assert.equal(rows.length, 0); // No collaborators yet, but owner has access
+  });
+
+  it("collaborator can list collaborators", async () => {
+    const prisma = makeMock();
+
+    // Alice is a collaborator on the owner's project
+    const rows = await getCollaborators(OWNER_PROJECT.id, "alice@example.com", "alice@example.com", prisma);
+
+    assert.ok(Array.isArray(rows));
+    assert.equal(rows.length, 0); // No collaborators yet, but collaborator has access
+  });
+
+  it("non-owner non-collaborator cannot list collaborators", async () => {
+    const prisma = makeMock();
+
+    // Bob is neither owner nor collaborator
+    await assert.rejects(
+      () => getCollaborators(OWNER_PROJECT.id, "bob@example.com", "bob@example.com", prisma),
+      (err: CollaboratorServiceError) => err.status === 403
     );
   });
 });
