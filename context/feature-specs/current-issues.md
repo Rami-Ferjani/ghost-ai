@@ -1,21 +1,27 @@
 
 
-after loginin and  i choose a project from the side bar, i get this error:  
-**Event handlers cannot be passed to Client Component props.**  
-  **&lt;... isSidebarOpen={true} onToggleSidebar={function onToggleSidebar} projectId=... projectName=... userId=...&gt;**  
-                                            **^^^^^^^^^^^^^^^^^^^^^^^^^^**  
-**If you need interactivity, consider converting part of this to a Client Component.**
+when i choose a project from the side bar i get  this error 
 
-app\\editor\\[roomId]\\page.tsx (27:10) @ EditorWorkspacePage
+ GET /editor/14b78897-5736-4984-a346-cc890903ad29? 500 in 1452ms (next.js: 17ms, proxy.ts: 11ms, application-code: 1424ms)
 
-```
-  25 |
-```
+[browser] Uncaught Error: Forbidden
 
-26 |   // Step 3: Render workspace
+    at assertCanReadProject (lib\\share-collaborators.ts:58:11)
 
-**&gt;** 27 |   return &lt;WorkspaceLayout project={project} userId={userId} /&gt;;
+    at  getCollaborators (lib\\share-collaborators.ts:97:3)
 
+    at  EditorWorkspacePage (app\\editor\\\[roomId\]\\page.tsx:30:25)
 
+  56 |
 
-Deeply analyze the problem and when you figure out how to fix it , present me how you intent to fix and wait for my permission to give you the green light to proceed with the fix
+  57 |   if (!isCollaborator) {
+
+&gt; 58 |     throw new CollaboratorServiceError(403, "Forbidden");
+
+     |           ^
+
+  59 |   }
+
+  60 | }
+
+fix it
