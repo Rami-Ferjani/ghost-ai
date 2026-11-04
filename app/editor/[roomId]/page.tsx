@@ -27,7 +27,7 @@ export default async function EditorWorkspacePage({
   }
 
   // Step 3: Fetch collaborator list and enrich with Clerk display data
-  const collaborators = await getCollaborators(project.id, email, getPrismaClient());
+  const collaborators = await getCollaborators(project.id, userId, email, getPrismaClient());
   const enriched = await Promise.all(
     collaborators.map((c) => fetchCollaboratorByEmail(c.collaboratorEmail))
   );

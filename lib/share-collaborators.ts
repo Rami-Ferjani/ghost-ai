@@ -38,6 +38,7 @@ function normalizeEmail(email: string): string {
  */
 async function assertCanReadProject(
   projectId: string,
+  userId: string,
   email: string,
   prisma: PrismaClient
 ): Promise<void> {
@@ -49,12 +50,15 @@ async function assertCanReadProject(
     throw new CollaboratorServiceError(403, "Forbidden");
   }
 
+  // Owners have explicit access to all project operations
+  const isOwner = project.ownerId === userId;
+
   // Only collaborators have explicit access to list collaborators
   const isCollaborator = await prisma.projectCollaborator.findUnique({
     where: { projectId_collaboratorEmail: { projectId, collaboratorEmail: email } },
   });
 
-  if (!isCollaborator) {
+  if (!isOwner && !isCollaborator) {
     throw new CollaboratorServiceError(403, "Forbidden");
   }
 }
@@ -65,6 +69,7 @@ async function assertCanReadProject(
  */
 async function assertCanMutateProject(
   projectId: string,
+  userId: string,
   email: string,
   prisma: PrismaClient
 ): Promise<void> {
@@ -77,11 +82,9 @@ async function assertCanMutateProject(
   }
 
   // Only owners can invite or remove collaborators
-  const isCollaborator = await prisma.projectCollaborator.findUnique({
-    where: { projectId_collaboratorEmail: { projectId, collaboratorEmail: email } },
-  });
+  const isOwner = project.ownerId === userId;
 
-  if (!isCollaborator) {
+  if (!isOwner) {
     throw new CollaboratorServiceError(403, "Forbidden");
   }
 }
@@ -91,10 +94,11 @@ async function assertCanMutateProject(
  */
 export async function getCollaborators(
   projectId: string,
+  userId: string,
   email: string,
   prisma: PrismaClient
 ): Promise<CollaboratorRow[]> {
-  await assertCanReadProject(projectId, email, prisma);
+  await assertCanReadProject(projectId, userId, email, prisma);
 
   const rows = await prisma.projectCollaborator.findMany({
     where: { projectId },
@@ -109,11 +113,12 @@ export async function getCollaborators(
  */
 export async function inviteCollaborator(
   projectId: string,
+  userId: string,
   email: string,
   bodyEmail: string,
   prisma: PrismaClient
 ): Promise<CollaboratorRow> {
-  await assertCanMutateProject(projectId, email, prisma);
+  await assertCanMutateProject(projectId, userId, email, prisma);
 
   const normalizedEmail = normalizeEmail(bodyEmail);
   if (!EMAIL_PATTERN.test(normalizedEmail)) {
@@ -152,11 +157,12 @@ export async function inviteCollaborator(
  */
 export async function removeCollaborator(
   projectId: string,
+  userId: string,
   email: string,
   bodyEmail: string,
   prisma: PrismaClient
 ): Promise<void> {
-  await assertCanMutateProject(projectId, email, prisma);
+  await assertCanMutateProject(projectId, userId, email, prisma);
 
   const normalizedEmail = normalizeEmail(bodyEmail);
   const row = await prisma.projectCollaborator.findUnique({

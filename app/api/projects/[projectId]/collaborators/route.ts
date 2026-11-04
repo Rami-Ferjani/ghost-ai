@@ -22,7 +22,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ project
   const prisma = getPrismaClient();
 
   try {
-    const rows = await getCollaborators(projectId, email, prisma);
+    const rows = await getCollaborators(projectId, userId, email, prisma);
 
     const enriched = await Promise.all(
       rows.map((row) => fetchCollaboratorByEmail(row.collaboratorEmail)),
@@ -69,6 +69,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
   try {
     const collaborator = await inviteCollaborator(
       projectId,
+      userId,
       email,
       bodyEmail,
       prisma,
@@ -112,7 +113,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ proje
   }
 
   try {
-    await removeCollaborator(projectId, email, bodyEmail, prisma);
+    await removeCollaborator(projectId, userId, email, bodyEmail, prisma);
     return Response.json({ success: true });
   } catch (err) {
     if (err instanceof CollaboratorServiceError) {
