@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import type { Project } from "@/types/project";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
@@ -17,28 +18,74 @@ export interface EditorClientProps {
   sharedProjects: Project[];
   /** Current user id (from the server component) */
   currentUserId?: string;
+  /** Current user email (from the server component) */
+  currentEmail?: string;
 }
 
 /**
  * Client shell for the editor page. Receives server-fetched projects and
- * `currentUserId`, owns the sidebar open state and active selection state, and
+ * `currentUserId`/`currentEmail`, owns the sidebar open state, active selection
+ * state, and the share dialog state (open, invite form, collaborator list), and
  * wires the custom `useProjectAction` hook to the three dialog components.
+ * The share dialog is managed by the workspace page, not the home page.
  */
 export const EditorClient: React.FC<EditorClientProps> = ({
   ownedProjects,
   sharedProjects,
   currentUserId,
+  currentEmail,
 }) => {
+  const router = useRouter();
   const allProjects = [...ownedProjects, ...sharedProjects];
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const action = useProjectAction({ currentUserId, activeProjectId: selectedProjectId });
+
+  // Navigate to workspace when a project is selected
+  useEffect(() => {
+    if (selectedProjectId) {
+      router.push(`/editor/${selectedProjectId}`);
+      router.refresh();
+    }
+  }, [selectedProjectId, router]);
+
+  const selectedProject = allProjects.find((p) => p.id === selectedProjectId) ?? null;
+
+  const handleOnOpenShare = useCallback(() => {
+    // The share dialog is managed by the workspace page; just redirect.
+    if (selectedProjectId) {
+      router.push(`/editor/${selectedProjectId}`);
+      router.refresh();
+    }
+  }, [selectedProjectId, router]);
+
+  const share = {
+    open: false,
+    onClose: () => {},
+    onOpenShare: handleOnOpenShare,
+    project: selectedProject,
+    role: null,
+    currentEmail: currentEmail ?? "",
+    collaborators: [],
+    inviteEmail: "",
+    setInviteEmail: () => {},
+    isInviting: false,
+    onInvite: () => Promise.resolve(),
+    onRemove: () => Promise.resolve(),
+    copyUrl: selectedProject ? `/editor/${selectedProject.id}` : "",
+    isCopied: false,
+    onCopyLink: () => Promise.resolve(),
+  };
 
   return (
     <div className="flex flex-col h-screen bg-background">
       <EditorNavbar
         isSidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        projectId={selectedProjectId ?? ""}
+        projectName={selectedProjectId ? "Selected Project" : "Editor Home"}
+        userId={currentUserId ?? ""}
+        share={share}
       />
       <div className="flex-1 overflow-hidden">
         <ProjectSidebar
